@@ -69,7 +69,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Run Android Lint
-        run: ./gradlew lintDebug --no-daemon --stacktrace --continue
+        run: ./gradlew lint --continue
 
       - name: Upload Lint Results
         if: always()
@@ -104,7 +104,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run Detekt
-        run: ./gradlew detekt --no-daemon --continue
+        run: ./gradlew detekt --continue
 
       - name: Upload Detekt Report
         if: always()
