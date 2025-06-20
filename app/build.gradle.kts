@@ -1,6 +1,11 @@
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("io.gitlab.arturbosch.detekt")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("org.sonarqube")
 }
 
 android {
@@ -22,7 +27,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -48,4 +53,10 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+ktlint {
+    reporters {
+        reporter(ReporterType.HTML)
+    }
 }
