@@ -9,14 +9,20 @@ import com.example.memorygameteam2.R
 
 class MenuAdapter(
     private val menuList: List<Menu>,
-    private val onItemClick: (Menu) -> Unit
-): RecyclerView.Adapter<MenuAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    private val onItemClick: (Menu) -> Unit,
+) : RecyclerView.Adapter<MenuAdapter.ViewHolder>() {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.items_menu, parent, false)
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val item = menuList[position]
         holder.cardTextView.text = item.text
 
@@ -27,7 +33,7 @@ class MenuAdapter(
 
     override fun getItemCount(): Int = menuList.size
 
-    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val cardTextView = itemView.findViewById<TextView>(R.id.card_text_view)
     }
 }

@@ -16,12 +16,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var menuAdapter: MenuAdapter
     private var intent: Intent = Intent()
 
-    private val menuList = listOf(
-        Menu("Login"),
-        Menu("Fetch"),
-        Menu("Play"),
-        Menu("Leaderboard")
-    )
+    private val menuList =
+        listOf(
+            Menu("Login"),
+            Menu("Fetch"),
+            Menu("Play"),
+            Menu("Leaderboard"),
+        )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +42,10 @@ class MainActivity : AppCompatActivity() {
 
     fun initRecyclerView() {
         binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
-        menuAdapter = MenuAdapter(menuList) { selectedItem ->
-            launch(selectedItem)
-        }
+        menuAdapter =
+            MenuAdapter(menuList) { selectedItem ->
+                launch(selectedItem)
+            }
         binding.menuRecyclerView.adapter = menuAdapter
     }
 
