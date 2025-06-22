@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MemoryGameTeam2</string>
+    <string name="matches">%1d/6 matches</string>
+    <string name="advert">This is an advertisement for free-to-play users</string>
 </resources>
