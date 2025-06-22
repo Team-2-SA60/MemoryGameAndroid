@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.Menu
 import com.example.memorygameteam2.menu.MenuAdapter
-import com.example.memorygameteam2.PlayActivity
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
