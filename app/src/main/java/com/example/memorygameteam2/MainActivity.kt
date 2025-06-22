@@ -65,6 +65,10 @@ class MainActivity : AppCompatActivity() {
                 activityIntent = Intent(this, LeaderboardActivity::class.java)
                 startActivity(activityIntent)
             }
+            "play" -> {
+                intent = Intent(this, PlayActivity::class.java)
+                startActivity(intent)
+            }
         }
     }
 
