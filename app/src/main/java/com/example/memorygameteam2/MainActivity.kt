@@ -10,12 +10,15 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.Menu
 import com.example.memorygameteam2.menu.MenuAdapter
+import com.example.memorygameteam2.service.BackgroundMusicService
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var menuAdapter: MenuAdapter
-    private var intent: Intent = Intent()
+    private var activityIntent = Intent()
+    private var musicIntent = Intent()
 
+    // temporary items on menu for testing/developing purpose
     private val menuList =
         listOf(
             Menu("Login"),
@@ -36,11 +39,11 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        initBackgroundMusic()
         initRecyclerView()
     }
 
-    fun initRecyclerView() {
+    private fun initRecyclerView() {
         binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
         menuAdapter =
             MenuAdapter(menuList) { selectedItem ->
@@ -49,12 +52,22 @@ class MainActivity : AppCompatActivity() {
         binding.menuRecyclerView.adapter = menuAdapter
     }
 
-    fun launch(selectedItem: Menu) {
+    // temporary menu intents
+    private fun launch(selectedItem: Menu) {
         when (selectedItem.text.lowercase()) {
+            // launch leaderboard activity
             "leaderboard" -> {
-                intent = Intent(this, LeaderboardActivity::class.java)
-                startActivity(intent)
+                activityIntent = Intent(this, LeaderboardActivity::class.java)
+                startActivity(activityIntent)
             }
         }
+    }
+
+    // starts background music
+    private fun initBackgroundMusic() {
+        musicIntent = Intent(this, BackgroundMusicService::class.java)
+        musicIntent.setAction("play")
+        musicIntent.putExtra("song", R.raw.gamebg)
+        startService(musicIntent)
     }
 }
