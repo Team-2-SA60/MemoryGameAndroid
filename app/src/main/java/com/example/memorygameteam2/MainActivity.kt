@@ -10,15 +10,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.Menu
 import com.example.memorygameteam2.menu.MenuAdapter
-import com.example.memorygameteam2.service.BackgroundMusicService
 import com.example.memorygameteam2.soundeffect.SoundManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var menuAdapter: MenuAdapter
-    private lateinit var soundManager: SoundManager
     private var activityIntent = Intent()
-    private var musicIntent = Intent()
 
     // temporary items on menu for testing/developing purpose
     private val menuList =
@@ -42,22 +39,43 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        initBackgroundMusic()
+        SoundManager.controlBackgroundMusic(this, SoundManager.PLAY_BACKGROUND_MUSIC)
         initRecyclerView()
+        initButtons()
     }
 
     private fun initRecyclerView() {
         binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
-        soundManager = SoundManager(this)
         menuAdapter =
             MenuAdapter(menuList) { selectedItem ->
-                soundManager.play("button")
+                SoundManager.playButtonClick(this)
                 launch(selectedItem)
             }
         binding.menuRecyclerView.adapter = menuAdapter
     }
 
-    // temporary menu intents
+    private fun initButtons() {
+        // tracker to determine if background music is playing
+        var musicIsPlaying = true
+        binding.apply {
+            // Toggle background music
+            backgroundMusicBtn.setOnClickListener {
+                SoundManager.playButtonClick(this@MainActivity)
+                if (musicIsPlaying) {
+                    // stops background music and change button text
+                    SoundManager.controlBackgroundMusic(this@MainActivity, SoundManager.STOP_BACKGROUND_MUSIC)
+                    backgroundMusicBtn.text = "Turn ON music"
+                } else {
+                    // plays background music and change button text
+                    SoundManager.controlBackgroundMusic(this@MainActivity, SoundManager.PLAY_BACKGROUND_MUSIC)
+                    backgroundMusicBtn.text = "Turn OFF music"
+                }
+                musicIsPlaying = !musicIsPlaying
+            }
+        }
+    }
+
+    // temporary menu activity explicit intents
     private fun launch(selectedItem: Menu) {
         when (selectedItem.text.lowercase()) {
             // launch leaderboard activity
@@ -68,16 +86,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // starts background music
-    private fun initBackgroundMusic() {
-        musicIntent = Intent(this, BackgroundMusicService::class.java)
-        musicIntent.setAction("play")
-        musicIntent.putExtra("song", R.raw.gamebg)
-        startService(musicIntent)
-    }
-
-    override fun onDestroy() {
-        soundManager.release()
-        super.onDestroy()
-    }
+    // play/stop background music
+//    private fun toggleBackgroundMusic(action: String) {
+//        musicIntent = Intent(this, SoundService::class.java)
+//        musicIntent.setAction(action)
+//        musicIntent.putExtra("song", R.raw.gamebg)
+//        startService(musicIntent)
+//    }
 }
