@@ -89,12 +89,4 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    // play/stop background music
-//    private fun toggleBackgroundMusic(action: String) {
-//        musicIntent = Intent(this, SoundService::class.java)
-//        musicIntent.setAction(action)
-//        musicIntent.putExtra("song", R.raw.gamebg)
-//        startService(musicIntent)
-//    }
 }
