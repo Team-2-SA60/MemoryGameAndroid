@@ -6,6 +6,7 @@ plugins {
     id("io.gitlab.arturbosch.detekt")
     id("org.jlleitschuh.gradle.ktlint")
     id("org.sonarqube")
+    id("org.jetbrains.kotlinx.kover")
 }
 
 android {
