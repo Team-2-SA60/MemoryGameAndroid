@@ -1,51 +1,36 @@
 package com.example.memorygameteam2.soundeffect
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
-import com.example.memorygameteam2.R
+import android.content.Intent
 
-class SoundManager(context: Context) {
-    companion object {
-        const val MAX_STREAMS = 5
-    }
+/**
+ * Sound controller
+ * play/stop background music
+ * play button sound effects
+ *
+ * Anything related to playing or stopping sounds
+ */
+object SoundManager {
+    const val PLAY_BACKGROUND_MUSIC = "play_background"
+    const val STOP_BACKGROUND_MUSIC = "stop_background"
+    const val RESUME_BACKGROUND_MUSIC = "resume_background"
+    const val PAUSE_BACKGROUND_MUSIC = "pause_background"
+    const val BUTTON_CLICK = "button_click"
 
-    private var soundPool: SoundPool =
-        SoundPool.Builder()
-            .setMaxStreams(MAX_STREAMS)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_GAME)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build(),
-            ).build()
-
-    private val soundMap = mutableMapOf<String, Int>()
-
-    init {
-        loadSound(context, "button", R.raw.buttonclick)
-    }
-
-    fun loadSound(
+    fun controlBackgroundMusic(
         context: Context,
-        name: String,
-        resId: Int,
+        action: String,
     ) {
-        val soundId = soundPool.load(context, resId, 1)
-        soundMap[name] = soundId
+        val intent =
+            Intent(context, SoundService::class.java)
+                .setAction(action)
+        context.startService(intent)
     }
 
-    fun play(
-        name: String,
-        volume: Float = 1f,
-    ) {
-        val soundId = soundMap[name]
-        soundId?.let {
-            soundPool.play(it, volume, volume, 1, 0, 1f)
-        }
-    }
-
-    fun release() {
-        soundPool.release()
+    fun playButtonClick(context: Context) {
+        val intent =
+            Intent(context, SoundService::class.java)
+                .setAction(BUTTON_CLICK)
+        context.startService(intent)
     }
 }

@@ -19,6 +19,10 @@ class MenuAdapter(
         return ViewHolder(view)
     }
 
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val cardTextView = itemView.findViewById<TextView>(R.id.card_text_view)
+    }
+
     override fun onBindViewHolder(
         holder: ViewHolder,
         position: Int,
@@ -32,8 +36,4 @@ class MenuAdapter(
     }
 
     override fun getItemCount(): Int = menuList.size
-
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val cardTextView = itemView.findViewById<TextView>(R.id.card_text_view)
-    }
 }

@@ -10,7 +10,6 @@ import com.example.memorygameteam2.soundeffect.SoundManager
 
 class LeaderboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLeaderboardBinding
-    private lateinit var soundManager: SoundManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,34 +28,27 @@ class LeaderboardActivity : AppCompatActivity() {
     }
 
     private fun initButtons() {
-        soundManager = SoundManager(this)
-
         binding.apply {
             backButton.setOnClickListener {
-                soundManager.play("button")
+                SoundManager.playButtonClick(this@LeaderboardActivity)
                 finish()
             }
 
             todayBtn.setOnClickListener {
-                soundManager.play("button")
+                SoundManager.playButtonClick(this@LeaderboardActivity)
             }
 
             last7DaysBtn.setOnClickListener {
-                soundManager.play("button")
+                SoundManager.playButtonClick(this@LeaderboardActivity)
             }
 
             last30DaysBtn.setOnClickListener {
-                soundManager.play("button")
+                SoundManager.playButtonClick(this@LeaderboardActivity)
             }
 
             allTimeBtn.setOnClickListener {
-                soundManager.play("button")
+                SoundManager.playButtonClick(this@LeaderboardActivity)
             }
         }
-    }
-
-    override fun onDestroy() {
-        soundManager.release()
-        super.onDestroy()
     }
 }

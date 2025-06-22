@@ -44,18 +44,18 @@ class PlayActivity : AppCompatActivity() {
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
         rv.adapter = CardAdapter(cards) { pos -> onCardClicked(pos, rv.adapter as CardAdapter) }
-
     }
 
     private fun createDeck(): MutableList<Card> {
-        val images = listOf(
-            R.drawable.bird_1,
-            R.drawable.bird_2,
-            R.drawable.bird_3,
-            R.drawable.bird_4,
-            R.drawable.bird_5,
-            R.drawable.bird_6
-        )
+        val images =
+            listOf(
+                R.drawable.bird_1,
+                R.drawable.bird_2,
+                R.drawable.bird_3,
+                R.drawable.bird_4,
+                R.drawable.bird_5,
+                R.drawable.bird_6,
+            )
         val cards = mutableListOf<Card>()
         var id = 1
         for (img in images) {
@@ -66,11 +66,13 @@ class PlayActivity : AppCompatActivity() {
         return cards
     }
 
-    private fun onCardClicked(pos: Int, adapter: CardAdapter) {
+    private fun onCardClicked(
+        pos: Int,
+        adapter: CardAdapter,
+    ) {
         // flip card face up
         cards[pos].isFaceUp = true
         adapter.notifyItemChanged(pos)
-
 
         if (firstPos != null) {
             val prev = firstPos!!
