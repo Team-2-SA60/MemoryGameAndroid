@@ -7,7 +7,8 @@ import android.os.IBinder
 import com.example.memorygameteam2.R
 
 /**
- * Sound service launched when
+ * Sound service to play the application sounds (sound effect and background music)
+ *
  */
 class SoundService : Service() {
     private var mediaPlayer: MediaPlayer? = null
@@ -41,6 +42,8 @@ class SoundService : Service() {
             SoundManager.RESUME_BACKGROUND_MUSIC -> {
                 if (mediaPlayer != null) {
                     mediaPlayer?.start()
+                } else if (getSharedPreferences("music", MODE_PRIVATE).getBoolean("isOn", false)) {
+                    playBackgroundMusic(R.raw.gamebg)
                 }
             }
 
@@ -73,6 +76,8 @@ class SoundService : Service() {
 
     override fun onDestroy() {
         stopBackgroundMusic()
+        soundEffect?.release()
+        soundEffect = null
         super.onDestroy()
     }
 

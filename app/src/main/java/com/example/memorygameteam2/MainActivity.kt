@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var menuAdapter: MenuAdapter
     private var activityIntent = Intent()
+    private var musicIsOn: Boolean = true
 
     // temporary items on menu for testing/developing purpose
     private val menuList =
@@ -39,9 +40,19 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        SoundManager.controlBackgroundMusic(this, SoundManager.PLAY_BACKGROUND_MUSIC)
+        initBackGroundSong()
         initRecyclerView()
         initButtons()
+    }
+
+    private fun initBackGroundSong() {
+        // tracker to determine if background music is toggled on by user
+        musicIsOn = getSharedPreferences("music", MODE_PRIVATE).getBoolean("isOn", true)
+        if (musicIsOn) {
+            SoundManager.controlBackgroundMusic(this, SoundManager.PLAY_BACKGROUND_MUSIC)
+        } else {
+            binding.backgroundMusicBtn.text = "Turn ON music"
+        }
     }
 
     private fun initRecyclerView() {
@@ -55,13 +66,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initButtons() {
-        // tracker to determine if background music is playing
-        var musicIsPlaying = true
         binding.apply {
             // Toggle background music
             backgroundMusicBtn.setOnClickListener {
                 SoundManager.playButtonClick(this@MainActivity)
-                if (musicIsPlaying) {
+                if (musicIsOn) {
                     // stops background music and change button text
                     SoundManager.controlBackgroundMusic(this@MainActivity, SoundManager.STOP_BACKGROUND_MUSIC)
                     backgroundMusicBtn.text = "Turn ON music"
@@ -70,7 +79,11 @@ class MainActivity : AppCompatActivity() {
                     SoundManager.controlBackgroundMusic(this@MainActivity, SoundManager.PLAY_BACKGROUND_MUSIC)
                     backgroundMusicBtn.text = "Turn OFF music"
                 }
-                musicIsPlaying = !musicIsPlaying
+                musicIsOn = !musicIsOn
+                with(getSharedPreferences("music", MODE_PRIVATE).edit()) {
+                    putBoolean("isOn", musicIsOn)
+                    apply()
+                }
             }
         }
     }
@@ -84,8 +97,8 @@ class MainActivity : AppCompatActivity() {
                 startActivity(activityIntent)
             }
             "play" -> {
-                intent = Intent(this, PlayActivity::class.java)
-                startActivity(intent)
+                activityIntent = Intent(this, PlayActivity::class.java)
+                startActivity(activityIntent)
             }
         }
     }

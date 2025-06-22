@@ -5,6 +5,13 @@ import android.media.AudioAttributes
 import android.media.SoundPool
 import com.example.memorygameteam2.R
 
+/**
+ * Sound Effect Player
+ *
+ * Usage:
+ * loadSound(context, "name_used_to_call_sound", ResourceId)
+ * play("name_used_to_call_sound")
+ */
 class SoundEffect(context: Context) {
     companion object {
         const val MAX_STREAMS = 5
