@@ -11,10 +11,12 @@ import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.Menu
 import com.example.memorygameteam2.menu.MenuAdapter
 import com.example.memorygameteam2.service.BackgroundMusicService
+import com.example.memorygameteam2.soundeffect.SoundManager
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var menuAdapter: MenuAdapter
+    private lateinit var soundManager: SoundManager
     private var activityIntent = Intent()
     private var musicIntent = Intent()
 
@@ -39,14 +41,17 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
         initBackgroundMusic()
         initRecyclerView()
     }
 
     private fun initRecyclerView() {
         binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
+        soundManager = SoundManager(this)
         menuAdapter =
             MenuAdapter(menuList) { selectedItem ->
+                soundManager.play("button")
                 launch(selectedItem)
             }
         binding.menuRecyclerView.adapter = menuAdapter
@@ -69,5 +74,10 @@ class MainActivity : AppCompatActivity() {
         musicIntent.setAction("play")
         musicIntent.putExtra("song", R.raw.gamebg)
         startService(musicIntent)
+    }
+
+    override fun onDestroy() {
+        soundManager.release()
+        super.onDestroy()
     }
 }
