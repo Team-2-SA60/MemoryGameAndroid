@@ -16,6 +16,8 @@ object SoundManager {
     const val RESUME_BACKGROUND_MUSIC = "resume_background"
     const val PAUSE_BACKGROUND_MUSIC = "pause_background"
     const val BUTTON_CLICK = "button_click"
+    const val BACKGROUND_MUSIC_VOLUME = 0.5F
+    const val SOUND_EFFECT_MAX_STREAMS = 5
 
     fun controlBackgroundMusic(
         context: Context,

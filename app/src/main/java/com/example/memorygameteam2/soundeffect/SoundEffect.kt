@@ -3,7 +3,6 @@ package com.example.memorygameteam2.soundeffect
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.SoundPool
-import com.example.memorygameteam2.R
 
 /**
  * Sound Effect Player
@@ -13,14 +12,9 @@ import com.example.memorygameteam2.R
  * play("name_used_to_call_sound")
  */
 class SoundEffect(context: Context) {
-    companion object {
-        const val MAX_STREAMS = 5
-        const val BUTTON = "button"
-    }
-
     private var soundPool: SoundPool =
         SoundPool.Builder()
-            .setMaxStreams(MAX_STREAMS)
+            .setMaxStreams(SoundManager.SOUND_EFFECT_MAX_STREAMS)
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_GAME)
@@ -29,10 +23,6 @@ class SoundEffect(context: Context) {
             ).build()
 
     private val soundMap = mutableMapOf<String, Int>()
-
-    init {
-        loadSound(context, BUTTON, R.raw.buttonclick)
-    }
 
     fun loadSound(
         context: Context,
