@@ -26,7 +26,7 @@
         app:layout_constraintBottom_toTopOf="@id/background_music_btn"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/items_menu"
+        tools:listitem="@layout/item_menu"
         app:layout_constraintVertical_weight="0.75" />
 
     <Button
