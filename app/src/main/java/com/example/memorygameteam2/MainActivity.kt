@@ -8,8 +8,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.memorygameteam2.databinding.ActivityMainBinding
-import com.example.memorygameteam2.menu.Menu
 import com.example.memorygameteam2.menu.MenuAdapter
+import com.example.memorygameteam2.model.Menu
 import com.example.memorygameteam2.soundeffect.SoundManager
 
 class MainActivity : AppCompatActivity() {

@@ -14,14 +14,19 @@ class SoundService : Service() {
     private var mediaPlayer: MediaPlayer? = null
     private var soundEffect: SoundEffect? = null
 
-    companion object {
-        const val BACKGROUND_VOLUME = 0.5F
-    }
-
     override fun onCreate() {
         super.onCreate()
         soundEffect = SoundEffect(this)
+
+        // Load sound effect to SoundEffect player
+        soundEffect?.loadSound(this, SoundManager.BUTTON_CLICK, R.raw.buttonclick)
     }
+
+    // Map of background music (if we adding more than 1)
+    private var backgroundMusicList =
+        mutableMapOf<String, Int>(
+            Pair("Doki", R.raw.gamebg),
+        )
 
     override fun onStartCommand(
         intent: Intent?,
@@ -31,7 +36,7 @@ class SoundService : Service() {
         when (intent?.action) {
             SoundManager.PLAY_BACKGROUND_MUSIC -> {
                 if (mediaPlayer == null) {
-                    playBackgroundMusic(R.raw.gamebg)
+                    playBackgroundMusic()
                 }
             }
 
@@ -43,7 +48,7 @@ class SoundService : Service() {
                 if (mediaPlayer != null) {
                     mediaPlayer?.start()
                 } else if (getSharedPreferences("music", MODE_PRIVATE).getBoolean("isOn", false)) {
-                    playBackgroundMusic(R.raw.gamebg)
+                    playBackgroundMusic()
                 }
             }
 
@@ -54,16 +59,18 @@ class SoundService : Service() {
             }
 
             SoundManager.BUTTON_CLICK -> {
-                soundEffect?.play(SoundEffect.BUTTON)
+                soundEffect?.play(SoundManager.BUTTON_CLICK)
             }
         }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun playBackgroundMusic(song: Int) {
-        mediaPlayer = MediaPlayer.create(this, song)
-        mediaPlayer?.setVolume(BACKGROUND_VOLUME, BACKGROUND_VOLUME)
+    private fun playBackgroundMusic() {
+        var musicToPlay = backgroundMusicList[backgroundMusicList.keys.random()]
+        if (musicToPlay == null) return
+        mediaPlayer = MediaPlayer.create(this, musicToPlay)
+        mediaPlayer?.setVolume(SoundManager.BACKGROUND_MUSIC_VOLUME, SoundManager.BACKGROUND_MUSIC_VOLUME)
         mediaPlayer?.isLooping = true
         mediaPlayer?.start()
     }

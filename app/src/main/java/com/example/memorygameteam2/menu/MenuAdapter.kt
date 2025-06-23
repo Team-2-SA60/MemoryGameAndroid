@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.R
+import com.example.memorygameteam2.model.Menu
 
 class MenuAdapter(
     private val menuList: List<Menu>,
@@ -15,7 +16,7 @@ class MenuAdapter(
         parent: ViewGroup,
         viewType: Int,
     ): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.items_menu, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_menu, parent, false)
         return ViewHolder(view)
     }
 
