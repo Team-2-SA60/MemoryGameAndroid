@@ -1,5 +1,6 @@
 package com.example.memorygameteam2
 
+import android.R.attr.text
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -16,6 +17,7 @@ import com.example.memorygameteam2.playactivity.CardAdapter
 
 /*
 To DO:
+1a. fix the match number to start from 0
 1. Flip sound effect
 2. Winning screen
 3. Format theme - font etc.
@@ -36,6 +38,9 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
+        // set matches as 0 / 6
+        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+
         // create deck + start timer
         cards = createDeck()
         findViewById<Chronometer>(R.id.timer).start()
@@ -44,7 +49,6 @@ class PlayActivity : AppCompatActivity() {
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
         rv.adapter = CardAdapter(cards) { pos -> onCardClicked(pos, rv.adapter as CardAdapter) }
-
     }
 
     private fun createDeck(): MutableList<Card> {
