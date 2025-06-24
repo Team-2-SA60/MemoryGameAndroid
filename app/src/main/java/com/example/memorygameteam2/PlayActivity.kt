@@ -16,6 +16,7 @@ import com.example.memorygameteam2.playactivity.CardAdapter
 
 /*
 To DO:
+1a. fix the match number to start from 0
 1. Flip sound effect
 2. Winning screen
 3. Format theme - font etc.
@@ -35,6 +36,9 @@ class PlayActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // set matches as 0 / 6
+        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
 
         // create deck + start timer
         cards = createDeck()
