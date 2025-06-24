@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
