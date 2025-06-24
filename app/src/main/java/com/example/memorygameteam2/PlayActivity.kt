@@ -1,6 +1,5 @@
 package com.example.memorygameteam2
 
-import android.R.attr.text
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
