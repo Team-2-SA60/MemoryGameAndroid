@@ -43,7 +43,7 @@
         app:layout_constraintVertical_bias="0.0"
         app:layout_constraintVertical_weight="0.2">
 
-        <!-- progress bar and loading -->
+        <!-- to add progress bar and loading -->
 
     </LinearLayout>
 
