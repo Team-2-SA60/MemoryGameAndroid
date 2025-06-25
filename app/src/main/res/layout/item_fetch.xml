@@ -9,8 +9,6 @@
     app:cardElevation="2dp"
     app:cardUseCompatPadding="true">
 
-    <!-- WIP: to try and add dynamic sizing for cards -->
-
     <ImageView
         android:id="@+id/fetch_card"
         android:layout_width="match_parent"

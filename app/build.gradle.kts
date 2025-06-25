@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.lifecycle:lifecycle-process")
     implementation("nl.bryanderidder:themed-toggle-button-group:1.4.1")
+    implementation("org.jsoup:jsoup:1.14.3")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

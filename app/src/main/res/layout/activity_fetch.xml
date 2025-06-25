@@ -12,11 +12,24 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
+        android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/fetch_rv"
         app:layout_constraintVertical_weight="0.2">
 
-        <!-- to add url bar and button -->
+        <EditText
+            android:id="@+id/fetch_link"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.7"
+            android:layout_margin="20dp"/>
+
+        <Button
+            android:id="@+id/fetch_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:text="fetch"/>
 
     </LinearLayout>
 

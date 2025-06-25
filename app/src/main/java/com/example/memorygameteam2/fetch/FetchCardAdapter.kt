@@ -1,7 +1,5 @@
 package com.example.memorygameteam2.fetch
 
-import android.graphics.Color
-import android.util.Log.v
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -28,15 +26,15 @@ class FetchCardAdapter(
         pos: Int
     ) {
         val card = cardList[pos]
-        holder.fetchedImage.setImageResource(card.imageRes)
+        holder.fetchedImage.setImageBitmap(card.image)
 
         holder.itemView.setOnClickListener {
             if (card.isSelected) {
                 card.isSelected = false
-                holder.fetchedImage.elevation = 2f // card does not float if deselected
+                holder.fetchedImage.elevation = 2f // card does not float if deselected // Doesn't work yet
             } else {
                 card.isSelected = true
-                holder.fetchedImage.elevation = 8f // card floats up when selected
+                holder.fetchedImage.elevation = 8f // card floats up when selected // Doesn't work yet
             }
         }
     }
