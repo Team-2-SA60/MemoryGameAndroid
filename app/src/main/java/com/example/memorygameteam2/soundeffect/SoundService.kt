@@ -26,6 +26,7 @@ class SoundService : Service() {
     private var backgroundMusicList =
         mutableMapOf<String, Int>(
             Pair("Doki", R.raw.gamebg),
+            Pair("SoHappy", R.raw.gamebg2),
         )
 
     override fun onStartCommand(
@@ -71,7 +72,7 @@ class SoundService : Service() {
         if (musicToPlay == null) return
         mediaPlayer = MediaPlayer.create(this, musicToPlay)
         mediaPlayer?.setVolume(SoundManager.BACKGROUND_MUSIC_VOLUME, SoundManager.BACKGROUND_MUSIC_VOLUME)
-        mediaPlayer?.isLooping = true
+        mediaPlayer?.setOnCompletionListener { playBackgroundMusic() }
         mediaPlayer?.start()
     }
 
