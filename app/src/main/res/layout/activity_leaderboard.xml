@@ -5,6 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".LeaderboardActivity">
 
     <nl.bryanderidder.themedtogglebuttongroup.ThemedToggleButtonGroup
@@ -53,18 +54,20 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.2"
-            android:gravity="center"
-            android:text="Rank"
+            android:layout_weight="0.5"
+            android:text="Player name"
             android:textSize="16sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textAlignment="textStart"
+            android:paddingStart="10dp"
+            android:lines="1"/>
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.5"
+            android:layout_weight="0.2"
             android:gravity="center"
-            android:text="Player"
+            android:text="Rank"
             android:textSize="16sp"
             android:textStyle="bold"/>
 
