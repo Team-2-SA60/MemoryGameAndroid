@@ -100,6 +100,10 @@ class MainActivity : AppCompatActivity() {
                 activityIntent = Intent(this, PlayActivity::class.java)
                 startActivity(activityIntent)
             }
+            "fetch" -> {
+                activityIntent = Intent(this, FetchActivity::class.java)
+                startActivity(activityIntent)
+            }
         }
     }
 }
