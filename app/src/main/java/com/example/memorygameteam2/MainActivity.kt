@@ -104,7 +104,10 @@ class MainActivity : AppCompatActivity() {
                 activityIntent = Intent(this, LoginScreen::class.java)
                 startActivity(activityIntent)
             }
-
+            "fetch" -> {
+                activityIntent = Intent(this, FetchActivity::class.java)
+                startActivity(activityIntent)
+            }
         }
     }
 }

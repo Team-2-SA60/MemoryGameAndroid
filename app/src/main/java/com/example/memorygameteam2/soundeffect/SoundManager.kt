@@ -18,6 +18,7 @@ object SoundManager {
     const val BUTTON_CLICK = "button_click"
     const val BACKGROUND_MUSIC_VOLUME = 0.5F
     const val SOUND_EFFECT_MAX_STREAMS = 5
+    const val CARD_FLIP = "flip card"
 
     fun controlBackgroundMusic(
         context: Context,
@@ -33,6 +34,14 @@ object SoundManager {
         val intent =
             Intent(context, SoundService::class.java)
                 .setAction(BUTTON_CLICK)
+        context.startService(intent)
+    }
+
+    // card-flip effect
+    fun playCardFlip(context: Context){
+        val intent =
+            Intent(context, SoundService::class.java)
+                .setAction(CARD_FLIP)
         context.startService(intent)
     }
 }
