@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
+import androidx.core.content.edit
 
 /*
 To DO:
@@ -66,7 +67,7 @@ class PlayActivity : AppCompatActivity() {
         soundSwitch.isChecked = soundEnabled
         soundSwitch.setOnCheckedChangeListener { _, isOn ->
             soundEnabled = isOn
-            prefs.edit().putBoolean("isOn", isOn).apply()
+            prefs.edit { putBoolean("isOn", isOn) }
             SoundManager.controlBackgroundMusic(
                 this@PlayActivity,
                 if (isOn) SoundManager.RESUME_BACKGROUND_MUSIC
