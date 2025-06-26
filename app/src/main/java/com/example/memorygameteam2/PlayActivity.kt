@@ -7,16 +7,18 @@ import android.widget.Chronometer
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
+import com.example.memorygameteam2.soundeffect.SoundManager
+import androidx.core.content.edit
 
 /*
 To DO:
-1a. fix the match number to start from 0
 1. Flip sound effect
 2. Winning screen
 3. Format theme - font etc.
@@ -26,6 +28,7 @@ class PlayActivity : AppCompatActivity() {
     private lateinit var cards: MutableList<Card>
     private var firstPos: Int? = null // rmbr first tapped card's pos
     private var matches = 0
+    private var soundEnabled = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,10 +47,33 @@ class PlayActivity : AppCompatActivity() {
         cards = createDeck()
         findViewById<Chronometer>(R.id.timer).start()
 
-        // setup RecyclerView with 4 x 3 cads
+        // setup RecyclerView with 4 x 3 cards
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
-        rv.adapter = CardAdapter(cards) { pos -> onCardClicked(pos, rv.adapter as CardAdapter) }
+        rv.adapter = CardAdapter(cards) { pos ->
+            onCardClicked(pos, rv.adapter as CardAdapter)
+        }
+
+        // control bg music
+        val prefs = getSharedPreferences("music", MODE_PRIVATE)
+        soundEnabled = prefs.getBoolean("isOn", true)
+        SoundManager.controlBackgroundMusic(
+            this,
+            if (soundEnabled) SoundManager.RESUME_BACKGROUND_MUSIC
+            else SoundManager.PAUSE_BACKGROUND_MUSIC
+        )
+        // bind toggle for sound
+        val soundSwitch = findViewById<SwitchCompat>(R.id.swSound)
+        soundSwitch.isChecked = soundEnabled
+        soundSwitch.setOnCheckedChangeListener { _, isOn ->
+            soundEnabled = isOn
+            prefs.edit { putBoolean("isOn", isOn) }
+            SoundManager.controlBackgroundMusic(
+                this@PlayActivity,
+                if (isOn) SoundManager.RESUME_BACKGROUND_MUSIC
+                else SoundManager.PAUSE_BACKGROUND_MUSIC
+            )
+        }
     }
 
     private fun createDeck(): MutableList<Card> {
@@ -74,6 +100,11 @@ class PlayActivity : AppCompatActivity() {
         pos: Int,
         adapter: CardAdapter,
     ) {
+        // play sound
+        if (soundEnabled) {
+            SoundManager.playCardFlip(this)
+        }
+
         // flip card face up
         cards[pos].isFaceUp = true
         adapter.notifyItemChanged(pos)
