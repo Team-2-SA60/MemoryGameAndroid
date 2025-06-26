@@ -20,6 +20,8 @@ class SoundService : Service() {
 
         // Load sound effect to SoundEffect player
         soundEffect?.loadSound(this, SoundManager.BUTTON_CLICK, R.raw.buttonclick)
+        // Load card flip sound
+        soundEffect?.loadSound(this, SoundManager.CARD_FLIP,R.raw.flip_sound)
     }
 
     // Map of background music (if we adding more than 1)
@@ -60,6 +62,11 @@ class SoundService : Service() {
 
             SoundManager.BUTTON_CLICK -> {
                 soundEffect?.play(SoundManager.BUTTON_CLICK)
+            }
+
+            // for card flip
+            SoundManager.CARD_FLIP -> {
+                soundEffect?.play(SoundManager.CARD_FLIP)
             }
         }
 
