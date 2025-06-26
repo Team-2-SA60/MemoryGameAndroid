@@ -1,10 +1,12 @@
 package com.example.memorygameteam2
 
 import android.R.attr.bitmap
+import android.R.attr.src
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
@@ -21,9 +23,11 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.BufferedReader
 import java.io.File
+import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 class FetchActivity : AppCompatActivity() {
     private var bgThread: Thread? = null
@@ -48,24 +52,28 @@ class FetchActivity : AppCompatActivity() {
         var fetchButton = findViewById<Button>(R.id.fetch_button)
         fetchButton.setOnClickListener {
             var fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
-//            bgThread = Thread {
+            bgThread = Thread {
                 val html = getHtmlContent(fetchLink)
                 val imageUrls = extractImageUrls(html)
+                fetchImages = mutableListOf<FetchCard>()
 
                 imageUrls.forEachIndexed { index, imageUrl ->
                     var file = makeFile("image_$index.jpg")
-                    downloadToFile(imageUrl, file)
-                    getImage(file)
+                    var success = downloadToFile(imageUrl, file) // check file 9
+                    if (success) {
+                        Log.d("DownloadSuccess", "Successfully downloaded image index $index")
+                        getImage(file)
+                    }
                 }
 
-//                runOnUiThread {
+                runOnUiThread {
                     // set up RecyclerView with 4 columns
                     var rv = findViewById<RecyclerView>(R.id.fetch_rv)
                     rv.layoutManager = GridLayoutManager(this, 4)
                     rv.adapter = FetchCardAdapter(fetchImages)
-//                }
-//            }
-//            bgThread?.start()
+                }
+            }
+            bgThread?.start()
         }
     }
 
@@ -74,7 +82,6 @@ class FetchActivity : AppCompatActivity() {
     private fun getHtmlContent(url: String): String {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.setRequestProperty("User-Agent", "Mozilla")
-        connection.requestMethod = "GET"
 
         return connection.inputStream.use { input ->
             BufferedReader(InputStreamReader(input)).use { reader ->
@@ -89,8 +96,11 @@ class FetchActivity : AppCompatActivity() {
         val doc: Document = Jsoup.parse(html)
         val imgElements: Elements = doc.select("img[src]")
         return imgElements
-            .take(20)              // limit to 20 items.
+            .take(20)              // limit to 20 items. // TO AMEND!
             .map { it.attr("src")} // maps values of "src" attribute (link) as List of String.
+            .filter { src ->
+                src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
+            }
     }
 
     // 3. finally make file to save to and download those images
@@ -100,11 +110,18 @@ class FetchActivity : AppCompatActivity() {
         return File(dir, filename)
     }
 
-    private fun downloadToFile(imageUrl: String, file: File) {
-        URL(imageUrl).openStream().use { input ->
-            file.outputStream().use { output ->
-                input.copyTo(output)
+    private fun downloadToFile(imageUrl: String, file: File): Boolean {
+        return try {
+            URL(imageUrl).openStream().use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
             }
+            true
+        } catch (e: IOException) {
+            Log.e("DownloadError", "Error downloading image", e)
+            file.delete()
+            false
         }
     }
 
