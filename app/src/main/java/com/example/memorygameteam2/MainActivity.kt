@@ -100,6 +100,11 @@ class MainActivity : AppCompatActivity() {
                 activityIntent = Intent(this, PlayActivity::class.java)
                 startActivity(activityIntent)
             }
+            "login" -> {
+                activityIntent = Intent(this, LoginScreen::class.java)
+                startActivity(activityIntent)
+            }
+
         }
     }
 }
