@@ -1,5 +1,7 @@
 package com.example.memorygameteam2.leaderboard
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +10,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.R
 import com.example.memorygameteam2.model.Rank
+import java.util.Locale
 
 class LeaderboardAdapter(
     private var rankingList: List<Rank>,
@@ -32,10 +35,17 @@ class LeaderboardAdapter(
         position: Int,
     ) {
         val item = rankingList[position]
-        holder.userRankView.text = item.rank.toString()
-        holder.userAvatarView.setImageResource(item.avatar)
+        // User rank
+        val rank = position + 1
+
+        // User Avatar Image
+        val avatarImageBytes = Base64.decode(item.avatarImage, Base64.DEFAULT)
+        val avatarImage = BitmapFactory.decodeByteArray(avatarImageBytes, 0, avatarImageBytes.size)
+
+        holder.userRankView.text = rank.toString()
+        holder.userAvatarView.setImageBitmap(avatarImage)
         holder.userNameView.text = item.username
-        holder.userTimeView.text = item.time
+        holder.userTimeView.text = formatSeconds(item.completionTime)
     }
 
     override fun getItemCount(): Int = rankingList.size
@@ -43,5 +53,12 @@ class LeaderboardAdapter(
     fun updateData(newRankingList: List<Rank>) {
         rankingList = newRankingList
         notifyDataSetChanged()
+    }
+
+    fun formatSeconds(seconds: Int): String {
+        val minutes = seconds / 60
+        val remainingSeconds = seconds % 60
+
+        return String.format(Locale.US, "%02d:%02d", minutes, remainingSeconds)
     }
 }
