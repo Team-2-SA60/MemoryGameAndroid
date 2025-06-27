@@ -38,7 +38,7 @@ object SoundManager {
     }
 
     // card-flip effect
-    fun playCardFlip(context: Context){
+    fun playCardFlip(context: Context) {
         val intent =
             Intent(context, SoundService::class.java)
                 .setAction(CARD_FLIP)
