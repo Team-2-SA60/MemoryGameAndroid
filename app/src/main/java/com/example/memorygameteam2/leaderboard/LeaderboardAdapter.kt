@@ -1,6 +1,7 @@
 package com.example.memorygameteam2.leaderboard
 
 import android.graphics.BitmapFactory
+import android.graphics.Typeface
 import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
@@ -16,10 +17,10 @@ class LeaderboardAdapter(
     private var rankingList: List<Rank>,
 ) : RecyclerView.Adapter<LeaderboardAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val userRankView = view.findViewById<TextView>(R.id.user_rank)
-        val userAvatarView = view.findViewById<ImageView>(R.id.user_avatar)
-        val userNameView = view.findViewById<TextView>(R.id.user_name)
-        val userTimeView = view.findViewById<TextView>(R.id.user_time)
+        val userRankView: TextView = view.findViewById<TextView>(R.id.user_rank)
+        val userAvatarView: ImageView = view.findViewById<ImageView>(R.id.user_avatar)
+        val userNameView: TextView = view.findViewById<TextView>(R.id.user_name)
+        val userTimeView: TextView = view.findViewById<TextView>(R.id.user_time)
     }
 
     override fun onCreateViewHolder(
@@ -36,13 +37,35 @@ class LeaderboardAdapter(
     ) {
         val item = rankingList[position]
         // User rank
-        val rank = position + 1
+        var rank = (position + 1).toString()
 
         // User Avatar Image
         val avatarImageBytes = Base64.decode(item.avatarImage, Base64.DEFAULT)
         val avatarImage = BitmapFactory.decodeByteArray(avatarImageBytes, 0, avatarImageBytes.size)
 
-        holder.userRankView.text = rank.toString()
+        // Beautify rankings, if rank = 1..3, Bold text and show a medal beside
+        if (rank in listOf("1", "2" , "3")) {
+            holder.userRankView.setTypeface(null, Typeface.BOLD)
+            holder.userRankView.textSize = 18f
+        }
+
+        when (rank) {
+            "1" -> {
+                rank = "🥇 $rank"
+            }
+            "2" -> {
+                rank = "🥈 $rank"
+            }
+            "3" -> {
+                rank = "🥉 $rank"
+            }
+            else -> {
+                rank
+            }
+        }
+
+        // Set views
+        holder.userRankView.text = rank
         holder.userAvatarView.setImageBitmap(avatarImage)
         holder.userNameView.text = item.username
         holder.userTimeView.text = formatSeconds(item.completionTime)
