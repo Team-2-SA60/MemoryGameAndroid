@@ -36,6 +36,8 @@ class PlayActivity : AppCompatActivity() {
     private var firstPos: Int? = null // save first tapped card's pos
     private var matches = 0
     private var soundEnabled = true
+    private lateinit var timer: Chronometer
+    private lateinit var tvMatches: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +49,17 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
+        // ref timer, matches
+        timer     = findViewById(R.id.timer)
+        tvMatches = findViewById(R.id.tvMatches)
+
         // set matches as 0 / TOTAL_PAIRS
-        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, TOTAL_PAIRS)
+        tvMatches.text = getString(R.string.matches, matches, TOTAL_PAIRS)
+
 
         // create deck + start timer
         cards = createDeck()
-        findViewById<Chronometer>(R.id.timer).start()
+        timer.start()
 
         // setup RecyclerView with 4 x 3 cards
         val rv = findViewById<RecyclerView>(R.id.rvCards)
@@ -130,7 +137,7 @@ class PlayActivity : AppCompatActivity() {
                 cards[prev].isMatched = true
                 cards[pos].isMatched = true
                 matches++
-                findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+                tvMatches.text = getString(R.string.matches, matches, TOTAL_PAIRS)
 
                 // check if game won
                 if (matches == TOTAL_PAIRS) {
@@ -176,7 +183,6 @@ class PlayActivity : AppCompatActivity() {
     }
 
     private fun computeElapsedSeconds(): Int {
-        val timer = findViewById<Chronometer>(R.id.timer)
         timer.stop()
         val elapsedMs = SystemClock.elapsedRealtime() - timer.base
         return (elapsedMs / 1000).toInt()
@@ -193,6 +199,8 @@ class PlayActivity : AppCompatActivity() {
                 val conn =
                     (url.openConnection() as HttpURLConnection).apply {
                         requestMethod = "POST"
+                        connectTimeout = 5_000 // so app doesn't hang forever
+                        readTimeout = 5_000
                         doOutput = true
                         setRequestProperty("Content-Type", "application/json; charset=UTF-8")
                     }
