@@ -6,7 +6,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import android.view.View
 import android.widget.Chronometer
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -30,6 +32,8 @@ import java.util.Locale
 class PlayActivity : AppCompatActivity() {
     companion object {
         private const val TOTAL_PAIRS = 6
+        private const val PREFS_NAME = "game_prefs"
+        private const val KEY_IS_PREMIUM = "isPremium"
     }
 
     private lateinit var cards: MutableList<Card>
@@ -38,6 +42,7 @@ class PlayActivity : AppCompatActivity() {
     private var soundEnabled = true
     private lateinit var timer: Chronometer
     private lateinit var tvMatches: TextView
+    private lateinit var advert: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +53,19 @@ class PlayActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // check if user isPremium
+        // dummy test: seed a fake premium flag
+        val gamePrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        if (!gamePrefs.contains(KEY_IS_PREMIUM)) {
+            gamePrefs.edit {
+                putBoolean(KEY_IS_PREMIUM, true)
+            }
+        }
+        // real data usage
+        val isPremium = gamePrefs.getBoolean(KEY_IS_PREMIUM, false)
+        advert = findViewById<ImageView>(R.id.ivAdvert)
+        advert.visibility = if (isPremium) View.GONE else View.VISIBLE
 
         // ref timer, matches
         timer = findViewById(R.id.timer)
