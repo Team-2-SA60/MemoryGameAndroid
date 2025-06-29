@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.R
 
 class FetchCardAdapter(
-    private val cardList: List<FetchCard>
+    private val cardList: List<FetchCard>,
 ) : RecyclerView.Adapter<FetchCardAdapter.ViewHolder>() {
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val fetchedImage: ImageView = itemView.findViewById(R.id.fetch_card)
@@ -16,14 +16,14 @@ class FetchCardAdapter(
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
-        viewType: Int
+        viewType: Int,
     ) = ViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.item_fetch, parent, false)
+        LayoutInflater.from(parent.context).inflate(R.layout.item_fetch, parent, false),
     )
 
     override fun onBindViewHolder(
         holder: ViewHolder,
-        pos: Int
+        pos: Int,
     ) {
         val card = cardList[pos]
         holder.fetchedImage.setImageBitmap(card.image)

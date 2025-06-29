@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
@@ -15,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
-import androidx.core.content.edit
 
 /*
 To DO:
@@ -25,6 +25,10 @@ To DO:
 4. Dynamic : Ads, Pictures
  */
 class PlayActivity : AppCompatActivity() {
+    companion object {
+        private const val TOTAL_PAIRS = 6
+    }
+
     private lateinit var cards: MutableList<Card>
     private var firstPos: Int? = null // rmbr first tapped card's pos
     private var matches = 0
@@ -40,8 +44,8 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
-        // set matches as 0 / 6
-        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+        // set matches as 0 / TOTAL_PAIRS
+        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, TOTAL_PAIRS)
 
         // create deck + start timer
         cards = createDeck()
@@ -50,17 +54,21 @@ class PlayActivity : AppCompatActivity() {
         // setup RecyclerView with 4 x 3 cards
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
-        rv.adapter = CardAdapter(cards) { pos ->
-            onCardClicked(pos, rv.adapter as CardAdapter)
-        }
+        rv.adapter =
+            CardAdapter(cards) { pos ->
+                onCardClicked(pos, rv.adapter as CardAdapter)
+            }
 
         // control bg music
         val prefs = getSharedPreferences("music", MODE_PRIVATE)
         soundEnabled = prefs.getBoolean("isOn", true)
         SoundManager.controlBackgroundMusic(
             this,
-            if (soundEnabled) SoundManager.RESUME_BACKGROUND_MUSIC
-            else SoundManager.PAUSE_BACKGROUND_MUSIC
+            if (soundEnabled) {
+                SoundManager.RESUME_BACKGROUND_MUSIC
+            } else {
+                SoundManager.PAUSE_BACKGROUND_MUSIC
+            },
         )
         // bind toggle for sound
         val soundSwitch = findViewById<SwitchCompat>(R.id.swSound)
@@ -70,8 +78,11 @@ class PlayActivity : AppCompatActivity() {
             prefs.edit { putBoolean("isOn", isOn) }
             SoundManager.controlBackgroundMusic(
                 this@PlayActivity,
-                if (isOn) SoundManager.RESUME_BACKGROUND_MUSIC
-                else SoundManager.PAUSE_BACKGROUND_MUSIC
+                if (isOn) {
+                    SoundManager.RESUME_BACKGROUND_MUSIC
+                } else {
+                    SoundManager.PAUSE_BACKGROUND_MUSIC
+                },
             )
         }
     }
@@ -117,6 +128,11 @@ class PlayActivity : AppCompatActivity() {
                 cards[pos].isMatched = true
                 matches++
                 findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+
+                // check if game won
+                if (matches == TOTAL_PAIRS) {
+                    onGameWin()
+                }
             } else {
                 // no match -> flip back after some time
                 Handler(Looper.getMainLooper()).postDelayed({
@@ -131,6 +147,14 @@ class PlayActivity : AppCompatActivity() {
         } else {
             // set pos as the first card tapped
             firstPos = pos
+        }
+    }
+
+    // on game win
+    private fun onGameWin() {
+        // play sound
+        if (soundEnabled) {
+            SoundManager.playGameWin(this)
         }
     }
 }
