@@ -44,7 +44,7 @@ class LeaderboardAdapter(
         val avatarImage = BitmapFactory.decodeByteArray(avatarImageBytes, 0, avatarImageBytes.size)
 
         // Beautify rankings, if rank = 1..3, Bold text and show a medal beside
-        if (rank in listOf("1", "2" , "3")) {
+        if (rank in listOf("1", "2", "3")) {
             holder.userRankView.setTypeface(null, Typeface.BOLD)
             holder.userRankView.textSize = 18f
         }
