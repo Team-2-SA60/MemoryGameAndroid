@@ -2,8 +2,10 @@ package com.example.memorygameteam2
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class LeaderboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLeaderboardBinding
@@ -42,6 +45,7 @@ class LeaderboardActivity : AppCompatActivity() {
         initRankList()
         initRecyclerView()
         initButtons()
+        showPlayerTime()
     }
 
     private fun initRankList() {
@@ -144,5 +148,17 @@ class LeaderboardActivity : AppCompatActivity() {
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG)
             .show()
+    }
+
+    private fun showPlayerTime() {
+        val tvPlayerTime = findViewById<TextView>(R.id.current_game_time)
+        val finishTime = intent.getIntExtra("finishTime", -1)
+        if (finishTime >= 0) {
+            val min = finishTime / 60
+            val second = finishTime % 60
+            val timeStr = String.format(Locale.getDefault(), "%02d:%02d", min, second)
+            tvPlayerTime.text = "Your time: $timeStr"
+            tvPlayerTime.visibility = View.VISIBLE
+        }
     }
 }

@@ -1,8 +1,10 @@
 package com.example.memorygameteam2
 
+import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.widget.Chronometer
 import android.widget.TextView
 import android.widget.Toast
@@ -161,7 +163,25 @@ class PlayActivity : AppCompatActivity() {
         Toast.makeText(
             this,
             "You Win!",
-            Toast.LENGTH_SHORT
+            Toast.LENGTH_LONG,
         ).show()
+
+        redirectToLeaderboard()
+    }
+
+    private fun redirectToLeaderboard() {
+        // save time
+        val timer = findViewById<Chronometer>(R.id.timer)
+        timer.stop()
+        val elapsedMs = SystemClock.elapsedRealtime() - timer.base
+        val elapsedSeconds = (elapsedMs / 1000).toInt()
+
+        val intent =
+            Intent(this, LeaderboardActivity::class.java).apply {
+                putExtra("finishTime", elapsedSeconds)
+            }
+
+        startActivity(intent)
+        finish()
     }
 }
