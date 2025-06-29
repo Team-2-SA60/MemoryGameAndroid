@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.widget.Chronometer
 import android.widget.TextView
 import android.widget.Toast
@@ -19,21 +20,20 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
+import org.json.JSONObject
+import java.net.HttpURLConnection
+import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/*
-To DO:
-1. Flip sound effect
-2. Winning screen
-3. Format theme - font etc.
-4. Dynamic : Ads, Pictures
- */
 class PlayActivity : AppCompatActivity() {
     companion object {
         private const val TOTAL_PAIRS = 6
     }
 
     private lateinit var cards: MutableList<Card>
-    private var firstPos: Int? = null // rmbr first tapped card's pos
+    private var firstPos: Int? = null // save first tapped card's pos
     private var matches = 0
     private var soundEnabled = true
 
@@ -153,34 +153,77 @@ class PlayActivity : AppCompatActivity() {
         }
     }
 
-    // on game win
     private fun onGameWin() {
-        // play sound
+        playWinSound()
+        showWinToast()
+        // send score backend - hardcoded for testing first
+        // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
+        // val userId = prefs.getInt("userId", 0)
+        val userId = 1
+        val elapsedSeconds = computeElapsedSeconds()
+        postScore(userId, elapsedSeconds)
+        launchLeaderboard(elapsedSeconds)
+    }
+
+    private fun playWinSound() {
         if (soundEnabled) {
             SoundManager.playGameWin(this)
         }
-        // show toast
-        Toast.makeText(
-            this,
-            "You Win!",
-            Toast.LENGTH_LONG,
-        ).show()
-
-        redirectToLeaderboard()
     }
 
-    private fun redirectToLeaderboard() {
-        // save time
+    private fun showWinToast() {
+        Toast.makeText(this, "You Win!", Toast.LENGTH_LONG).show()
+    }
+
+    private fun computeElapsedSeconds(): Int {
         val timer = findViewById<Chronometer>(R.id.timer)
         timer.stop()
         val elapsedMs = SystemClock.elapsedRealtime() - timer.base
-        val elapsedSeconds = (elapsedMs / 1000).toInt()
+        return (elapsedMs / 1000).toInt()
+    }
 
+    private fun postScore(
+        userId: Int,
+        elapsedSeconds: Int,
+    ) {
+        val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        Thread {
+            try {
+                val url = URL("http://152.42.175.43/api/Game/create")
+                val conn =
+                    (url.openConnection() as HttpURLConnection).apply {
+                        requestMethod = "POST"
+                        doOutput = true
+                        setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+                    }
+
+                val payload =
+                    JSONObject().apply {
+                        put("userId", userId)
+                        put("completionTime", elapsedSeconds)
+                        put("date", dateStr)
+                    }.toString()
+
+                conn.outputStream.bufferedWriter().use { it.write(payload) }
+
+                // log the response code
+                Log.d("PlayActivity", "POST response code: ${conn.responseCode}")
+                // log the response body
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                Log.d("PlayActivity", "POST response body: $body")
+
+                conn.disconnect()
+            } catch (e: Exception) {
+                Log.e("PlayActivity", "Error posting score", e)
+            }
+        }.start()
+    }
+
+    private fun launchLeaderboard(elapsedSeconds: Int) {
         val intent =
             Intent(this, LeaderboardActivity::class.java).apply {
                 putExtra("finishTime", elapsedSeconds)
             }
-
         startActivity(intent)
         finish()
     }
