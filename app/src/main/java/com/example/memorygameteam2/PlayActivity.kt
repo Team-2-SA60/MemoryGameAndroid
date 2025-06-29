@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Chronometer
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
@@ -156,5 +157,11 @@ class PlayActivity : AppCompatActivity() {
         if (soundEnabled) {
             SoundManager.playGameWin(this)
         }
+        // show toast
+        Toast.makeText(
+            this,
+            "You Win!",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
