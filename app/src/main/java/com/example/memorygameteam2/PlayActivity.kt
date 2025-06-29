@@ -50,12 +50,11 @@ class PlayActivity : AppCompatActivity() {
         }
 
         // ref timer, matches
-        timer     = findViewById(R.id.timer)
+        timer = findViewById(R.id.timer)
         tvMatches = findViewById(R.id.tvMatches)
 
         // set matches as 0 / TOTAL_PAIRS
         tvMatches.text = getString(R.string.matches, matches, TOTAL_PAIRS)
-
 
         // create deck + start timer
         cards = createDeck()
@@ -64,10 +63,7 @@ class PlayActivity : AppCompatActivity() {
         // setup RecyclerView with 4 x 3 cards
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
-        rv.adapter =
-            CardAdapter(cards) { pos ->
-                onCardClicked(pos, rv.adapter as CardAdapter)
-            }
+        rv.adapter = CardAdapter(cards) { pos -> onCardClicked(pos, rv.adapter as CardAdapter) }
 
         // control bg music
         val prefs = getSharedPreferences("music", MODE_PRIVATE)
