@@ -22,6 +22,6 @@ interface ApiService {
 
     @POST("api/game/create")
     suspend fun createGame(
-        @Body game: Game
+        @Body game: Game,
     ): Response<Game>
 }
