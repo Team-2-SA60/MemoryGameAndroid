@@ -37,15 +37,15 @@
 
 
     <EditText
-        android:id="@+id/email"
+        android:id="@+id/User"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
         android:background="@drawable/et_bg"
         android:drawableEnd="@drawable/ic_baseline_email_24"
         android:drawableTint="@color/white_light"
-        android:hint="Email address"
-        android:inputType="textEmailAddress"
+        android:hint="User"
+        android:inputType="textNoSuggestions"
         android:padding="16dp"
         android:textColor="@color/black"
         android:textColorHint="@color/black"
@@ -69,7 +69,7 @@
         android:textColorHint="@color/black"
         app:layout_constraintEnd_toStartOf="@id/guideline_right"
         app:layout_constraintStart_toStartOf="@id/guideline_left"
-        app:layout_constraintTop_toBottomOf="@+id/email" />
+        app:layout_constraintTop_toBottomOf="@+id/User" />
 
 
     <Button
