@@ -2,13 +2,17 @@ package com.example.memorygameteam2
 
 import android.R.attr.bitmap
 import android.R.attr.src
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.fetch.FetchCard
 import com.example.memorygameteam2.fetch.FetchCardAdapter
+import com.example.memorygameteam2.playactivity.CardAdapter
 import org.jsoup.Jsoup
 import org.jsoup.helper.HttpConnection
 import org.jsoup.nodes.Document
@@ -31,6 +36,8 @@ import javax.net.ssl.HttpsURLConnection
 
 class FetchActivity : AppCompatActivity() {
     private var bgThread: Thread? = null
+    private var numberSelected: Int = 0
+    private var selectedImages: MutableList<Int> = mutableListOf<Int>()
     private lateinit var fetchImages: MutableList<FetchCard>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,10 +53,15 @@ class FetchActivity : AppCompatActivity() {
         initButtons()
     }
 
-    // set onClick listener when 'Fetch' is pressed
+    // initialise buttons for Fetch Activity
 
     private fun initButtons() {
-        var fetchButton = findViewById<Button>(R.id.fetch_button)
+        val fetchButton = findViewById<Button>(R.id.fetch_button)
+        val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
+        val progressText = findViewById<TextView>(R.id.progress_text)
+        val playButton = findViewById<Button>(R.id.play_button)
+
+        // set onClick listener when 'Fetch' is pressed
         fetchButton.setOnClickListener {
             var fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
             bgThread = Thread {
@@ -57,12 +69,26 @@ class FetchActivity : AppCompatActivity() {
                 val imageUrls = extractImageUrls(html)
                 fetchImages = mutableListOf<FetchCard>()
 
-                imageUrls.forEachIndexed { index, imageUrl ->
+                // fetch images from URL and present image on cards
+                for ((index, imageUrl) in imageUrls.withIndex()) {
+                    if (fetchImages.size == 20) {
+                        break
+                    }
                     var file = makeFile("image_$index.jpg")
-                    var success = downloadToFile(imageUrl, file) // check file 9
+                    var success = downloadToFile(imageUrl, file)
                     if (success) {
-                        Log.d("DownloadSuccess", "Successfully downloaded image index $index")
                         getImage(file)
+                    }
+
+                    // update progress bar and progress text
+                    runOnUiThread {
+                        if (fetchImages.size == 20) {
+                            progressBar.progress = 100
+                            progressText.text = "Select 6 images plz!"
+                        } else {
+                            progressBar.progress = ((index+1) * 100 / 20)
+                            progressText.text = "${index+1} / 20 images loaded..."
+                        }
                     }
                 }
 
@@ -70,10 +96,56 @@ class FetchActivity : AppCompatActivity() {
                     // set up RecyclerView with 4 columns
                     var rv = findViewById<RecyclerView>(R.id.fetch_rv)
                     rv.layoutManager = GridLayoutManager(this, 4)
-                    rv.adapter = FetchCardAdapter(fetchImages)
+                    rv.adapter = FetchCardAdapter(fetchImages) { pos ->
+                        onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
+                    }
                 }
             }
             bgThread?.start()
+        }
+
+        // when 'Play' is pressed: pass selected image info to Play Activity
+        playButton.setOnClickListener {
+            val imagePosArray = selectedImages.toCollection(ArrayList()) // must be converted to pass in Intent
+            val intent = Intent(this, PlayActivity::class.java)
+            intent.putIntegerArrayListExtra("imageList", imagePosArray)
+            startActivity(intent)
+        }
+    }
+
+    // function to handle clicked Card View
+
+    private fun onFetchCardClicked(
+        pos: Int,
+        adapter: FetchCardAdapter
+    ) {
+        val selectedImage = fetchImages[pos]
+        val playButton = findViewById<Button>(R.id.play_button)
+
+        if (!selectedImage.isSelected) {
+            if (selectedImages.size < 6) {
+                selectedImage.isSelected = true
+                numberSelected++
+                selectedImages.add(pos)
+                adapter.notifyItemChanged(pos)
+
+                if (selectedImages.size == 6) {
+                    playButton.isEnabled = true
+                    playButton.text = "Play!"
+                } else {
+                    playButton.visibility = View.VISIBLE
+                    playButton.text = "${selectedImages.size} / 6 images selected"
+                }
+                Log.d("clickChange", selectedImages.toString()) // for checking, TO REMOVE!
+            }
+        } else {
+            playButton.isEnabled = false
+            selectedImage.isSelected = false
+            numberSelected--
+            selectedImages.remove(pos)
+            adapter.notifyItemChanged(pos)
+            playButton.text = "${selectedImages.size} / 6 images selected"
+            Log.d("clickChange", selectedImages.toString()) // for checking, TO REMOVE!
         }
     }
 
@@ -96,8 +168,8 @@ class FetchActivity : AppCompatActivity() {
         val doc: Document = Jsoup.parse(html)
         val imgElements: Elements = doc.select("img[src]")
         return imgElements
-            .take(20)              // limit to 20 items. // TO AMEND!
-            .map { it.attr("src")} // maps values of "src" attribute (link) as List of String.
+            //.take(20)               // limit to 20 items. // TO AMEND!
+            .map { it.attr("src") } // maps values of "src" attribute (link) as List of String.
             .filter { src ->
                 src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
             }
@@ -119,7 +191,7 @@ class FetchActivity : AppCompatActivity() {
             }
             true
         } catch (e: IOException) {
-            Log.e("DownloadError", "Error downloading image", e)
+            Log.e("DownloadError", "Error downloading image")
             file.delete()
             false
         }
@@ -132,44 +204,12 @@ class FetchActivity : AppCompatActivity() {
         fetchImages.add(FetchCard(bitmap))
     }
 
-//    override fun onDestroy() {
-//        super.onDestroy()
-//        bgThread?.interrupt()
-//        bgThread = null
-//    }
+    // close bgThread on closing Activity
 
-    //
-    // old code
-    // fetch images
-
-//    private fun fetchImages(): MutableList<FetchCard> {
-//        val images = listOf (
-//            R.drawable.bird_1,
-//            R.drawable.bird_2,
-//            R.drawable.bird_3,
-//            R.drawable.bird_4,
-//            R.drawable.bird_5,
-//            R.drawable.bird_6,
-//            R.drawable.bird_7,
-//            R.drawable.bird_8,
-//            R.drawable.bird_9,
-//            R.drawable.bird_10,
-//            R.drawable.bird_11,
-//            R.drawable.bird_12,
-//            R.drawable.bird_13,
-//            R.drawable.bird_14,
-//            R.drawable.bird_15,
-//            R.drawable.bird_16,
-//            R.drawable.bird_17,
-//            R.drawable.bird_18,
-//            R.drawable.bird_19,
-//            R.drawable.bird_20
-//        )
-//        var fetchCards = mutableListOf<FetchCard>()
-//        for (img in images) {
-//            fetchCards.add(FetchCard(img))
-//        }
-//        return fetchCards
-//    }
+    override fun onDestroy() {
+        super.onDestroy()
+        bgThread?.interrupt()
+        bgThread = null
+    }
 
 }

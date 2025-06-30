@@ -35,7 +35,8 @@ class CardAdapter(
         // face up or matched: show front
         holder.imgFront.visibility = if (card.isFaceUp || card.isMatched) View.VISIBLE else View.GONE
         if (card.isFaceUp || card.isMatched) {
-            holder.imgFront.setImageResource(card.imageRes)
+            //holder.imgFront.setImageResource(card.imageRes) // old code
+            holder.imgFront.setImageBitmap(card.image)
         }
 
         holder.itemView.setOnClickListener {
