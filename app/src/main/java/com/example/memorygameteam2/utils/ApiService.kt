@@ -1,5 +1,6 @@
 package com.example.memorygameteam2.utils
 
+import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.model.Rank
 import com.example.memorygameteam2.model.User
 import retrofit2.Response
@@ -18,4 +19,9 @@ interface ApiService {
     suspend fun getTopGames(
         @Query("daysAgo") daysAgo: Int,
     ): Response<List<Rank>>
+
+    @POST("api/game/create")
+    suspend fun createGame(
+        @Body game: Game
+    ): Response<Game>
 }

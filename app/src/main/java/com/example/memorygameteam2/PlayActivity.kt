@@ -19,12 +19,16 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
-import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
+import com.example.memorygameteam2.utils.RetroFitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -206,39 +210,36 @@ class PlayActivity : AppCompatActivity() {
         userId: Int,
         elapsedSeconds: Int,
     ) {
-        val dateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        Thread {
+        val game = Game(
+            userId = userId,
+            completionTime = elapsedSeconds,
+            date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        )
+
+        CoroutineScope(Dispatchers.IO).launch {
             try {
-                val url = URL("http://152.42.175.43/api/Game/create")
-                val conn =
-                    (url.openConnection() as HttpURLConnection).apply {
-                        requestMethod = "POST"
-                        connectTimeout = 5_000 // so app doesn't hang forever
-                        readTimeout = 5_000
-                        doOutput = true
-                        setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-                    }
+                val response = RetroFitClient.api.createGame(game)
 
-                val payload =
-                    JSONObject().apply {
-                        put("userId", userId)
-                        put("completionTime", elapsedSeconds)
-                        put("date", dateStr)
-                    }.toString()
+                if (!response.isSuccessful) {
+                    throw IOException("HTTP ${response.code()} ${response.message()}")
+                }
 
-                conn.outputStream.bufferedWriter().use { it.write(payload) }
-
-                // log the response code
-                Log.d("PlayActivity", "POST response code: ${conn.responseCode}")
-                // log the response body
-                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                Log.d("PlayActivity", "POST response body: $body")
-
-                conn.disconnect()
+                // success
+                withContext(Dispatchers.Main) {
+                    Log.d("PlayActivity", "Score posted: ${response.body()}")
+                }
             } catch (e: Exception) {
-                Log.e("PlayActivity", "Error posting score", e)
+                // catch network failures, HTTP errors
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@PlayActivity,
+                        "Error posting score: ${e.localizedMessage}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                Log.e("PlayAPI", "Exception", e)
             }
-        }.start()
+        }
     }
 
     private fun launchLeaderboard(elapsedSeconds: Int) {
