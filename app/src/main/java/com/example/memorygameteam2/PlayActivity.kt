@@ -28,10 +28,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.xml.KonfettiView
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class PlayActivity : AppCompatActivity() {
     companion object {
@@ -180,6 +185,7 @@ class PlayActivity : AppCompatActivity() {
 
     private fun onGameWin() {
         playWinSound()
+        celebrateWin()
         showWinToast()
         // send score backend - hardcoded for testing first
         // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
@@ -187,7 +193,11 @@ class PlayActivity : AppCompatActivity() {
         val userId = 1
         val elapsedSeconds = computeElapsedSeconds()
         postScore(userId, elapsedSeconds)
-        launchLeaderboard(elapsedSeconds)
+
+        // delay leaderboard until confetti finishes
+        Handler(Looper.getMainLooper()).postDelayed({
+            launchLeaderboard(elapsedSeconds)
+        }, 2500)
     }
 
     private fun playWinSound() {
@@ -210,11 +220,12 @@ class PlayActivity : AppCompatActivity() {
         userId: Int,
         elapsedSeconds: Int,
     ) {
-        val game = Game(
-            userId = userId,
-            completionTime = elapsedSeconds,
-            date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        )
+        val game =
+            Game(
+                userId = userId,
+                completionTime = elapsedSeconds,
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+            )
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -234,12 +245,28 @@ class PlayActivity : AppCompatActivity() {
                     Toast.makeText(
                         this@PlayActivity,
                         "Error posting score: ${e.localizedMessage}",
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
                 Log.e("PlayAPI", "Exception", e)
             }
         }
+    }
+
+    // confetti
+    private fun celebrateWin() {
+        val konfettiView = findViewById<KonfettiView>(R.id.konfettiView)
+        val party =
+            Party(
+                speed = 0f,
+                maxSpeed = 30f,
+                damping = 0.9f,
+                spread = 360,
+                colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
+                emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                position = Position.Relative(0.5, 0.3),
+            )
+        konfettiView.start(party)
     }
 
     private fun launchLeaderboard(elapsedSeconds: Int) {
