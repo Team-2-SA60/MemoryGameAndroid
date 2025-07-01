@@ -6,33 +6,56 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
+import android.view.View
 import android.widget.Chronometer
+import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
 import androidx.core.content.edit
 import java.io.File
+import com.example.memorygameteam2.utils.RetroFitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.xml.KonfettiView
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
-/*
-To DO:
-1. Flip sound effect
-2. Winning screen
-3. Format theme - font etc.
-4. Dynamic : Ads, Pictures
- */
 class PlayActivity : AppCompatActivity() {
+    companion object {
+        private const val TOTAL_PAIRS = 6
+        private const val PREFS_NAME = "game_prefs"
+        private const val KEY_IS_PREMIUM = "isPremium"
+    }
+
     private lateinit var cards: MutableList<Card>
-    private var firstPos: Int? = null // rmbr first tapped card's pos
+    private var firstPos: Int? = null // save first tapped card's pos
     private var matches = 0
     private var soundEnabled = true
+    private lateinit var timer: Chronometer
+    private lateinit var tvMatches: TextView
+    private lateinit var advert: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,27 +67,45 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
-        // set matches as 0 / 6
-        findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+        // check if user isPremium
+        // dummy test: seed a fake premium flag
+        val gamePrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        if (!gamePrefs.contains(KEY_IS_PREMIUM)) {
+            gamePrefs.edit {
+                putBoolean(KEY_IS_PREMIUM, true)
+            }
+        }
+        // real data usage
+        val isPremium = gamePrefs.getBoolean(KEY_IS_PREMIUM, false)
+        advert = findViewById<ImageView>(R.id.ivAdvert)
+        advert.visibility = if (isPremium) View.GONE else View.VISIBLE
+
+        // ref timer, matches
+        timer = findViewById(R.id.timer)
+        tvMatches = findViewById(R.id.tvMatches)
+
+        // set matches as 0 / TOTAL_PAIRS
+        tvMatches.text = getString(R.string.matches, matches, TOTAL_PAIRS)
 
         // create deck + start timer
         cards = createDeck()
-        findViewById<Chronometer>(R.id.timer).start()
+        timer.start()
 
         // setup RecyclerView with 4 x 3 cards
         val rv = findViewById<RecyclerView>(R.id.rvCards)
         rv.layoutManager = GridLayoutManager(this, 3)
-        rv.adapter = CardAdapter(cards) { pos ->
-            onCardClicked(pos, rv.adapter as CardAdapter)
-        }
+        rv.adapter = CardAdapter(cards) { pos -> onCardClicked(pos, rv.adapter as CardAdapter) }
 
         // control bg music
         val prefs = getSharedPreferences("music", MODE_PRIVATE)
         soundEnabled = prefs.getBoolean("isOn", true)
         SoundManager.controlBackgroundMusic(
             this,
-            if (soundEnabled) SoundManager.RESUME_BACKGROUND_MUSIC
-            else SoundManager.PAUSE_BACKGROUND_MUSIC
+            if (soundEnabled) {
+                SoundManager.RESUME_BACKGROUND_MUSIC
+            } else {
+                SoundManager.PAUSE_BACKGROUND_MUSIC
+            },
         )
         // bind toggle for sound
         val soundSwitch = findViewById<SwitchCompat>(R.id.swSound)
@@ -74,8 +115,11 @@ class PlayActivity : AppCompatActivity() {
             prefs.edit { putBoolean("isOn", isOn) }
             SoundManager.controlBackgroundMusic(
                 this@PlayActivity,
-                if (isOn) SoundManager.RESUME_BACKGROUND_MUSIC
-                else SoundManager.PAUSE_BACKGROUND_MUSIC
+                if (isOn) {
+                    SoundManager.RESUME_BACKGROUND_MUSIC
+                } else {
+                    SoundManager.PAUSE_BACKGROUND_MUSIC
+                },
             )
         }
     }
@@ -138,7 +182,12 @@ class PlayActivity : AppCompatActivity() {
                 cards[prev].isMatched = true
                 cards[pos].isMatched = true
                 matches++
-                findViewById<TextView>(R.id.tvMatches).text = getString(R.string.matches, matches)
+                tvMatches.text = getString(R.string.matches, matches, TOTAL_PAIRS)
+
+                // check if game won
+                if (matches == TOTAL_PAIRS) {
+                    onGameWin()
+                }
             } else {
                 // no match -> flip back after some time
                 Handler(Looper.getMainLooper()).postDelayed({
@@ -154,5 +203,100 @@ class PlayActivity : AppCompatActivity() {
             // set pos as the first card tapped
             firstPos = pos
         }
+    }
+
+    private fun onGameWin() {
+        playWinSound()
+        celebrateWin()
+        showWinToast()
+        // send score backend - hardcoded for testing first
+        // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
+        // val userId = prefs.getInt("userId", 0)
+        val userId = 1
+        val elapsedSeconds = computeElapsedSeconds()
+        postScore(userId, elapsedSeconds)
+
+        // delay leaderboard until confetti finishes
+        Handler(Looper.getMainLooper()).postDelayed({
+            launchLeaderboard(elapsedSeconds)
+        }, 2500)
+    }
+
+    private fun playWinSound() {
+        if (soundEnabled) {
+            SoundManager.playGameWin(this)
+        }
+    }
+
+    private fun showWinToast() {
+        Toast.makeText(this, "You Win!", Toast.LENGTH_LONG).show()
+    }
+
+    private fun computeElapsedSeconds(): Int {
+        timer.stop()
+        val elapsedMs = SystemClock.elapsedRealtime() - timer.base
+        return (elapsedMs / 1000).toInt()
+    }
+
+    private fun postScore(
+        userId: Int,
+        elapsedSeconds: Int,
+    ) {
+        val game =
+            Game(
+                userId = userId,
+                completionTime = elapsedSeconds,
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+            )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetroFitClient.api.createGame(game)
+
+                if (!response.isSuccessful) {
+                    throw IOException("HTTP ${response.code()} ${response.message()}")
+                }
+
+                // success
+                withContext(Dispatchers.Main) {
+                    Log.d("PlayActivity", "Score posted: ${response.body()}")
+                }
+            } catch (e: Exception) {
+                // catch network failures, HTTP errors
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@PlayActivity,
+                        "Error posting score: ${e.localizedMessage}",
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
+                Log.e("PlayAPI", "Exception", e)
+            }
+        }
+    }
+
+    // confetti
+    private fun celebrateWin() {
+        val konfettiView = findViewById<KonfettiView>(R.id.konfettiView)
+        val party =
+            Party(
+                speed = 0f,
+                maxSpeed = 30f,
+                damping = 0.9f,
+                spread = 360,
+                colors = listOf(0xfce18a, 0xff726d, 0xf4306d, 0xb48def),
+                emitter = Emitter(duration = 100, TimeUnit.MILLISECONDS).max(100),
+                position = Position.Relative(0.5, 0.3),
+            )
+        konfettiView.start(party)
+    }
+
+    private fun launchLeaderboard(elapsedSeconds: Int) {
+        val intent =
+            Intent(this, LeaderboardActivity::class.java).apply {
+                putExtra("finishTime", elapsedSeconds)
+            }
+        startActivity(intent)
+        finish()
     }
 }

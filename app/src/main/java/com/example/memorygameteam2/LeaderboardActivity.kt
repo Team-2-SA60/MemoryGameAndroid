@@ -1,8 +1,12 @@
 package com.example.memorygameteam2
 
 import android.os.Bundle
+import android.util.Log
+import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -12,8 +16,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.memorygameteam2.databinding.ActivityLeaderboardBinding
 import com.example.memorygameteam2.leaderboard.LeaderboardAdapter
 import com.example.memorygameteam2.model.Rank
-import com.example.memorygameteam2.model.RankDAO
 import com.example.memorygameteam2.soundeffect.SoundManager
+import com.example.memorygameteam2.utils.RetroFitClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class LeaderboardActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLeaderboardBinding
@@ -36,10 +45,13 @@ class LeaderboardActivity : AppCompatActivity() {
         initRankList()
         initRecyclerView()
         initButtons()
+        showPlayerTime()
     }
 
     private fun initRankList() {
-        rankingList = RankDAO.getRankList("today")
+        rankingList = listOf<Rank>()
+        binding.btnGroup.selectButton(binding.todayBtn)
+        fetchRankingList(1)
     }
 
     private fun initRecyclerView() {
@@ -61,30 +73,57 @@ class LeaderboardActivity : AppCompatActivity() {
 
             todayBtn.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
-                rankingList = RankDAO.getRankList("today")
-                updateRankingList(rankingList)
+                fetchRankingList(1)
             }
 
             last7DaysBtn.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
-                rankingList = RankDAO.getRankList("last7")
-                updateRankingList(rankingList)
+                fetchRankingList(7)
             }
 
             last30DaysBtn.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
-                rankingList = RankDAO.getRankList("last30")
-                updateRankingList(rankingList)
+                fetchRankingList(30)
             }
 
             allTimeBtn.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
-                rankingList = RankDAO.getRankList("allTime")
-                updateRankingList(rankingList)
+                fetchRankingList()
             }
         }
     }
 
+    // Fetch API request using Retrofit with Coroutine
+    private fun fetchRankingList(daysAgo: Int = 0) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetroFitClient.api.getTopGames(daysAgo)
+                if (response.isSuccessful) {
+                    val ranks = response.body()!!.toList()
+                    withContext(Dispatchers.Main) {
+                        updateRankingList(ranks)
+                    }
+                } else {
+                    // This is when response not between code 200-300
+                    // so Not FOUND, UNAUTHORIZED etc will go through below
+                    withContext(Dispatchers.Main) {
+                        showToast("Failed to retrieve ranking list ${response.code()}")
+                    }
+                    Log.e("API_error", "Response failed: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                // This is when there's an issue with the API request
+                // Like erm daysAgo != Int, then it will catch exception and go through below
+                // Or when URL does not exist or return anything
+                withContext(Dispatchers.Main) {
+                    showToast(e.toString())
+                }
+                Log.e("API_exception", e.toString())
+            }
+        }
+    }
+
+    // Update recycler view with new ranking list with animations
     private fun updateRankingList(newRankingList: List<Rank>) {
         // Fade out current list (VISIBLE -> INVISIBLE)
         binding.leaderboardRecyclerView.animate()
@@ -104,5 +143,22 @@ class LeaderboardActivity : AppCompatActivity() {
                     .start()
             }
             .start()
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG)
+            .show()
+    }
+
+    private fun showPlayerTime() {
+        val tvPlayerTime = findViewById<TextView>(R.id.current_game_time)
+        val finishTime = intent.getIntExtra("finishTime", -1)
+        if (finishTime >= 0) {
+            val min = finishTime / 60
+            val second = finishTime % 60
+            val timeStr = String.format(Locale.getDefault(), "%02d:%02d", min, second)
+            tvPlayerTime.text = "Your time: $timeStr"
+            tvPlayerTime.visibility = View.VISIBLE
+        }
     }
 }

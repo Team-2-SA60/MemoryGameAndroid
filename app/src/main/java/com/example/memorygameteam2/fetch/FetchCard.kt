@@ -4,5 +4,5 @@ import android.graphics.Bitmap
 
 data class FetchCard(
     var image: Bitmap,
-    var isSelected: Boolean = false
+    var isSelected: Boolean = false,
 )

@@ -21,7 +21,8 @@ class SoundService : Service() {
         // Load sound effect to SoundEffect player
         soundEffect?.loadSound(this, SoundManager.BUTTON_CLICK, R.raw.buttonclick)
         // Load card flip sound
-        soundEffect?.loadSound(this, SoundManager.CARD_FLIP,R.raw.flip_sound)
+        soundEffect?.loadSound(this, SoundManager.CARD_FLIP, R.raw.flip_sound)
+        soundEffect?.loadSound(this, SoundManager.GAME_WIN, R.raw.victory)
     }
 
     // Map of background music (if we adding more than 1)
@@ -69,6 +70,10 @@ class SoundService : Service() {
             SoundManager.CARD_FLIP -> {
                 soundEffect?.play(SoundManager.CARD_FLIP)
             }
+
+            SoundManager.GAME_WIN -> {
+                soundEffect?.play(SoundManager.GAME_WIN)
+            }
         }
 
         return super.onStartCommand(intent, flags, startId)
@@ -78,7 +83,10 @@ class SoundService : Service() {
         var musicToPlay = backgroundMusicList[backgroundMusicList.keys.random()]
         if (musicToPlay == null) return
         mediaPlayer = MediaPlayer.create(this, musicToPlay)
-        mediaPlayer?.setVolume(SoundManager.BACKGROUND_MUSIC_VOLUME, SoundManager.BACKGROUND_MUSIC_VOLUME)
+        mediaPlayer?.setVolume(
+            SoundManager.BACKGROUND_MUSIC_VOLUME,
+            SoundManager.BACKGROUND_MUSIC_VOLUME,
+        )
         mediaPlayer?.setOnCompletionListener { playBackgroundMusic() }
         mediaPlayer?.start()
     }
