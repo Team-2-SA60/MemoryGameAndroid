@@ -1,10 +1,13 @@
 package com.example.memorygameteam2
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -53,7 +56,7 @@ class LeaderboardActivity : AppCompatActivity() {
         initRankList()
         initRecyclerView()
         initButtons()
-        showPlayerTime()
+        showPlayerCard()
     }
 
     private fun initRankList() {
@@ -171,15 +174,44 @@ class LeaderboardActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showPlayerTime() {
-        val tvPlayerTime = findViewById<TextView>(R.id.current_game_time)
-        val finishTime = intent.getIntExtra("finishTime", -1)
-        if (finishTime >= 0) {
-            val min = finishTime / 60
-            val second = finishTime % 60
-            val timeStr = String.format(Locale.getDefault(), "%02d:%02d", min, second)
-            tvPlayerTime.text = "Your time: $timeStr"
-            tvPlayerTime.visibility = View.VISIBLE
+    private fun showPlayerCard() {
+        val gameId = intent.getIntExtra(CURRENT_GAME_ID, -1)
+        if (gameId < 0) return
+
+        val card = findViewById<View>(R.id.current_player_card)
+        val avatar = card.findViewById<ImageView>(R.id.user_avatar)
+        val username = card.findViewById<TextView>(R.id.user_name)
+        val completedTime = card.findViewById<TextView>(R.id.user_time)
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val dto =
+                withContext(Dispatchers.IO) {
+                    val resp = RetroFitClient.api.findGame(gameId)
+                    if (!resp.isSuccessful) throw IOException("HTTP ${resp.code()}")
+                    resp.body()!!
+                }
+
+            card.apply {
+                findViewById<TextView>(R.id.user_rank).visibility = View.GONE // hide user rank
+
+                // set avatar
+                dto.avatarImage?.let { b64 ->
+                    val bytes = Base64.decode(b64, Base64.DEFAULT)
+                    avatar.setImageBitmap(
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size),
+                    )
+                }
+
+                // set name & time
+                username.text = dto.username
+                dto.completionTime?.let { secs ->
+                    val min = secs / 60
+                    val sec = secs % 60
+                    completedTime.text = String.format(Locale.US, "Time: %02d:%02d", min, sec)
+                }
+
+                visibility = View.VISIBLE
+            }
         }
     }
 }
