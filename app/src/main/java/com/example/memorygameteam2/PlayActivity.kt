@@ -28,6 +28,7 @@ import com.example.memorygameteam2.soundeffect.SoundManager
 import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.dionsegijn.konfetti.core.Party
@@ -46,6 +47,7 @@ class PlayActivity : AppCompatActivity() {
         private const val TOTAL_PAIRS = 6
         private const val PREFS_NAME = "game_prefs"
         private const val KEY_IS_PREMIUM = "isPremium"
+        const val CURRENT_GAME_ID = "CURRENT_GAME_ID"
     }
 
     private lateinit var cards: MutableList<Card>
@@ -211,14 +213,9 @@ class PlayActivity : AppCompatActivity() {
         // send score backend - hardcoded for testing first
         // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
         // val userId = prefs.getInt("userId", 0)
-        val userId = 1
+        val userId = 2
         val elapsedSeconds = computeElapsedSeconds()
         postScore(userId, elapsedSeconds)
-
-        // delay leaderboard until confetti finishes
-        Handler(Looper.getMainLooper()).postDelayed({
-            launchLeaderboard(elapsedSeconds)
-        }, 2500)
     }
 
     private fun playWinSound() {
@@ -257,8 +254,12 @@ class PlayActivity : AppCompatActivity() {
                 }
 
                 // success
+                val dto = response.body()!!
+                val currentGameId = dto.gameId
+                Log.d("Current game id", "$currentGameId")
                 withContext(Dispatchers.Main) {
-                    Log.d("PlayActivity", "Score posted: ${response.body()}")
+                    delay(2500)
+                    launchLeaderboard(currentGameId)
                 }
             } catch (e: Exception) {
                 // catch network failures, HTTP errors
@@ -269,7 +270,7 @@ class PlayActivity : AppCompatActivity() {
                         Toast.LENGTH_LONG,
                     ).show()
                 }
-                Log.e("PlayAPI", "Exception", e)
+                Log.e("PlayActivity", "postScore failed", e)
             }
         }
     }
@@ -290,10 +291,10 @@ class PlayActivity : AppCompatActivity() {
         konfettiView.start(party)
     }
 
-    private fun launchLeaderboard(elapsedSeconds: Int) {
+    private fun launchLeaderboard(gameId: Int?) {
         val intent =
             Intent(this, LeaderboardActivity::class.java).apply {
-                putExtra("finishTime", elapsedSeconds)
+                putExtra(CURRENT_GAME_ID, gameId)
             }
         startActivity(intent)
         finish()

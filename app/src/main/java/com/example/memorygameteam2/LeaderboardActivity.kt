@@ -26,9 +26,16 @@ import java.io.IOException
 import java.util.Locale
 
 class LeaderboardActivity : AppCompatActivity() {
+    companion object {
+        const val CURRENT_GAME_ID = "CURRENT_GAME_ID"
+    }
+
     private lateinit var binding: ActivityLeaderboardBinding
     private lateinit var leaderboardAdapter: LeaderboardAdapter
     private lateinit var rankingList: List<Rank>
+    private val currentGameId: Int by lazy {
+        intent.getIntExtra(CURRENT_GAME_ID, -1)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +68,12 @@ class LeaderboardActivity : AppCompatActivity() {
         binding.leaderboardRecyclerView.layoutAnimation = animation
         binding.leaderboardRecyclerView.itemAnimator = DefaultItemAnimator()
         binding.leaderboardRecyclerView.layoutManager = LinearLayoutManager(this)
-        leaderboardAdapter = LeaderboardAdapter(rankingList)
+
+        leaderboardAdapter =
+            LeaderboardAdapter(
+                rankingList,
+                currentGameId,
+            )
         binding.leaderboardRecyclerView.adapter = leaderboardAdapter
     }
 
@@ -123,8 +135,9 @@ class LeaderboardActivity : AppCompatActivity() {
 
     // Update recycler view with new ranking list with animations
     private fun updateRankingList(newRankingList: List<Rank>) {
+        val rv = binding.leaderboardRecyclerView
         // Fade out current list (VISIBLE -> INVISIBLE)
-        binding.leaderboardRecyclerView.animate()
+        rv.animate()
             .alpha(0f)
             .setDuration(300)
             .withEndAction {
@@ -132,12 +145,22 @@ class LeaderboardActivity : AppCompatActivity() {
                 leaderboardAdapter.updateData(newRankingList)
 
                 // start the falldown animation
-                binding.leaderboardRecyclerView.scheduleLayoutAnimation()
+                rv.scheduleLayoutAnimation()
 
                 // fade in the list (INVISIBLE -> VISIBLE)
-                binding.leaderboardRecyclerView.animate()
+                rv.animate()
                     .alpha(1f)
                     .setDuration(300)
+                    .withEndAction {
+                        // scroll to leaderboard position if any
+                        val highlightPos =
+                            newRankingList.indexOfFirst { it.gameId == currentGameId }
+                        if (highlightPos >= 0) {
+                            rv.postDelayed({
+                                rv.smoothScrollToPosition(highlightPos)
+                            }, 800)
+                        }
+                    }
                     .start()
             }
             .start()
