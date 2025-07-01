@@ -8,19 +8,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.R
 import com.example.memorygameteam2.model.Rank
+import com.google.android.material.card.MaterialCardView
 import java.util.Locale
 
 class LeaderboardAdapter(
     private var rankingList: List<Rank>,
+    private val currentGameId: Int,
 ) : RecyclerView.Adapter<LeaderboardAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val userRankView: TextView = view.findViewById<TextView>(R.id.user_rank)
         val userAvatarView: ImageView = view.findViewById<ImageView>(R.id.user_avatar)
         val userNameView: TextView = view.findViewById<TextView>(R.id.user_name)
         val userTimeView: TextView = view.findViewById<TextView>(R.id.user_time)
+        val cardRoot: MaterialCardView = view.findViewById(R.id.card_root)
     }
 
     override fun onCreateViewHolder(
@@ -44,21 +48,31 @@ class LeaderboardAdapter(
         val avatarImage = BitmapFactory.decodeByteArray(avatarImageBytes, 0, avatarImageBytes.size)
 
         // Beautify rankings, if rank = 1..3, Bold text and show a medal beside
-        if (rank in listOf("1", "2", "3")) {
-            holder.userRankView.setTypeface(null, Typeface.BOLD)
-            holder.userRankView.textSize = 18f
+        val isTopThree = (rank in listOf("1", "2", "3"))
+        holder.userRankView.apply {
+            // reset first
+            setTypeface(null, Typeface.NORMAL)
+            textSize = 14f
+
+            if (isTopThree) {
+                setTypeface(null, Typeface.BOLD)
+                textSize = 18f
+            }
         }
 
         when (rank) {
             "1" -> {
                 rank = "🥇 $rank"
             }
+
             "2" -> {
                 rank = "🥈 $rank"
             }
+
             "3" -> {
                 rank = "🥉 $rank"
             }
+
             else -> {
                 rank
             }
@@ -69,6 +83,18 @@ class LeaderboardAdapter(
         holder.userAvatarView.setImageBitmap(avatarImage)
         holder.userNameView.text = item.username
         holder.userTimeView.text = formatSeconds(item.completionTime)
+
+        // highlight current game
+        val isCurrentGame = (item.gameId == currentGameId)
+        holder.cardRoot.apply {
+            setCardBackgroundColor(
+                if (isCurrentGame) {
+                    "#ffc8c2f0".toColorInt()
+                } else {
+                    "#ffffffff".toColorInt()
+                },
+            )
+        }
     }
 
     override fun getItemCount(): Int = rankingList.size
