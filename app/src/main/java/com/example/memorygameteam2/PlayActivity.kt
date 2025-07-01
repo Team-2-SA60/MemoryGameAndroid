@@ -1,7 +1,10 @@
 package com.example.memorygameteam2
 
+import android.R.attr.bitmap
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -23,6 +26,8 @@ import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
+import androidx.core.content.edit
+import java.io.File
 import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -120,21 +125,38 @@ class PlayActivity : AppCompatActivity() {
         }
     }
 
+//    private fun createDeck(): MutableList<Card> {
+//        val images =
+//            listOf(
+//                R.drawable.bird_1,
+//                R.drawable.bird_2,
+//                R.drawable.bird_3,
+//                R.drawable.bird_4,
+//                R.drawable.bird_5,
+//                R.drawable.bird_6,
+//            )
+//        val cards = mutableListOf<Card>()
+//        var id = 1
+//        for (img in images) {
+//            cards += Card(id++, img)
+//            cards += Card(id++, img)
+//        }
+//        cards.shuffle() // shuffle elements in mutable list
+//        return cards
+//    }
+
+    // testing createDeck() with selected images
     private fun createDeck(): MutableList<Card> {
-        val images =
-            listOf(
-                R.drawable.bird_1,
-                R.drawable.bird_2,
-                R.drawable.bird_3,
-                R.drawable.bird_4,
-                R.drawable.bird_5,
-                R.drawable.bird_6,
-            )
+        val imagePosArray = intent.getIntegerArrayListExtra("imageList")
+        val fileDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         val cards = mutableListOf<Card>()
         var id = 1
-        for (img in images) {
-            cards += Card(id++, img)
-            cards += Card(id++, img)
+
+        imagePosArray?.forEach { pos ->
+            var file = File(fileDir, "image_$pos.jpg")
+            var bitmap = BitmapFactory.decodeFile(file.absolutePath)
+            cards += Card(id++, bitmap)
+            cards += Card(id++, bitmap)
         }
         cards.shuffle() // shuffle elements in mutable list
         return cards
@@ -156,7 +178,8 @@ class PlayActivity : AppCompatActivity() {
         if (firstPos != null) {
             val prev = firstPos!!
             // if second tapped card matches
-            if (cards[prev].imageRes == cards[pos].imageRes) {
+            //if (cards[prev].imageRes == cards[pos].imageRes) { // old code
+            if (cards[prev].image == cards[pos].image) {
                 cards[prev].isMatched = true
                 cards[pos].isMatched = true
                 matches++

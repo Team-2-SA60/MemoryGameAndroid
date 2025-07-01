@@ -12,23 +12,25 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="horizontal"
-        android:gravity="center"
+        android:gravity="bottom"
+        android:padding="10dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/fetch_rv"
-        app:layout_constraintVertical_weight="0.2">
+        app:layout_constraintVertical_weight="0.15">
 
         <EditText
             android:id="@+id/fetch_link"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.7"
-            android:layout_margin="20dp"/>
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="0.7" />
 
         <Button
             android:id="@+id/fetch_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="20dp"
+            android:layout_marginEnd="20dp"
             android:text="fetch"/>
 
     </LinearLayout>
@@ -39,7 +41,7 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/fetch_url"
         app:layout_constraintBottom_toTopOf="@id/fetch_progress"
-        app:layout_constraintVertical_weight="0.6"
+        app:layout_constraintVertical_weight="0.65"
         tools:listitem="@layout/item_fetch">
 
     </androidx.recyclerview.widget.RecyclerView>
@@ -49,6 +51,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
+        android:gravity="top"
+        android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -56,7 +60,33 @@
         app:layout_constraintVertical_bias="0.0"
         app:layout_constraintVertical_weight="0.2">
 
-        <!-- to add progress bar and loading -->
+        <Button
+            android:id="@+id/play_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+            android:visibility="invisible"
+            android:enabled="false"/>
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="35dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_gravity="center"/>
+
+        <TextView
+            android:id="@+id/progress_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_gravity="center"
+            android:textSize="18sp"
+            android:text="Enter a URL to fetch images"/>
 
     </LinearLayout>
 
