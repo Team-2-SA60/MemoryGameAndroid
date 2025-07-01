@@ -1,9 +1,6 @@
 package com.example.memorygameteam2
 
-import android.R.attr.bitmap
-import android.R.attr.src
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
@@ -21,9 +18,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.fetch.FetchCard
 import com.example.memorygameteam2.fetch.FetchCardAdapter
-import com.example.memorygameteam2.playactivity.CardAdapter
 import org.jsoup.Jsoup
-import org.jsoup.helper.HttpConnection
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.BufferedReader
@@ -32,7 +27,6 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 class FetchActivity : AppCompatActivity() {
     private var bgThread: Thread? = null
@@ -64,43 +58,45 @@ class FetchActivity : AppCompatActivity() {
         // set onClick listener when 'Fetch' is pressed
         fetchButton.setOnClickListener {
             var fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
-            bgThread = Thread {
-                val html = getHtmlContent(fetchLink)
-                val imageUrls = extractImageUrls(html)
-                fetchImages = mutableListOf<FetchCard>()
+            bgThread =
+                Thread {
+                    val html = getHtmlContent(fetchLink)
+                    val imageUrls = extractImageUrls(html)
+                    fetchImages = mutableListOf<FetchCard>()
 
-                // fetch images from URL and present image on cards
-                for ((index, imageUrl) in imageUrls.withIndex()) {
-                    if (fetchImages.size == 20) {
-                        break
-                    }
-                    var file = makeFile("image_$index.jpg")
-                    var success = downloadToFile(imageUrl, file)
-                    if (success) {
-                        getImage(file)
-                    }
-
-                    // update progress bar and progress text
-                    runOnUiThread {
+                    // fetch images from URL and present image on cards
+                    for ((index, imageUrl) in imageUrls.withIndex()) {
                         if (fetchImages.size == 20) {
-                            progressBar.progress = 100
-                            progressText.text = "Select 6 images plz!"
-                        } else {
-                            progressBar.progress = ((index+1) * 100 / 20)
-                            progressText.text = "${index+1} / 20 images loaded..."
+                            break
+                        }
+                        var file = makeFile("image_$index.jpg")
+                        var success = downloadToFile(imageUrl, file)
+                        if (success) {
+                            getImage(file)
+                        }
+
+                        // update progress bar and progress text
+                        runOnUiThread {
+                            if (fetchImages.size == 20) {
+                                progressBar.progress = 100
+                                progressText.text = "Select 6 images plz!"
+                            } else {
+                                progressBar.progress = ((index + 1) * 100 / 20)
+                                progressText.text = "${index + 1} / 20 images loaded..."
+                            }
                         }
                     }
-                }
 
-                runOnUiThread {
-                    // set up RecyclerView with 4 columns
-                    var rv = findViewById<RecyclerView>(R.id.fetch_rv)
-                    rv.layoutManager = GridLayoutManager(this, 4)
-                    rv.adapter = FetchCardAdapter(fetchImages) { pos ->
-                        onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
+                    runOnUiThread {
+                        // set up RecyclerView with 4 columns
+                        var rv = findViewById<RecyclerView>(R.id.fetch_rv)
+                        rv.layoutManager = GridLayoutManager(this, 4)
+                        rv.adapter =
+                            FetchCardAdapter(fetchImages) { pos ->
+                                onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
+                            }
                     }
                 }
-            }
             bgThread?.start()
         }
 
@@ -117,7 +113,7 @@ class FetchActivity : AppCompatActivity() {
 
     private fun onFetchCardClicked(
         pos: Int,
-        adapter: FetchCardAdapter
+        adapter: FetchCardAdapter,
     ) {
         val selectedImage = fetchImages[pos]
         val playButton = findViewById<Button>(R.id.play_button)
@@ -168,7 +164,7 @@ class FetchActivity : AppCompatActivity() {
         val doc: Document = Jsoup.parse(html)
         val imgElements: Elements = doc.select("img[src]")
         return imgElements
-            //.take(20)               // limit to 20 items. // TO AMEND!
+            // .take(20)               // limit to 20 items. // TO AMEND!
             .map { it.attr("src") } // maps values of "src" attribute (link) as List of String.
             .filter { src ->
                 src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
@@ -182,7 +178,10 @@ class FetchActivity : AppCompatActivity() {
         return File(dir, filename)
     }
 
-    private fun downloadToFile(imageUrl: String, file: File): Boolean {
+    private fun downloadToFile(
+        imageUrl: String,
+        file: File,
+    ): Boolean {
         return try {
             URL(imageUrl).openStream().use { input ->
                 file.outputStream().use { output ->
@@ -211,5 +210,4 @@ class FetchActivity : AppCompatActivity() {
         bgThread?.interrupt()
         bgThread = null
     }
-
 }

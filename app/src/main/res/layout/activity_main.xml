@@ -27,7 +27,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_menu"
-        app:layout_constraintVertical_weight="0.75" />
+        app:layout_constraintVertical_weight="0.75"
+        app:layoutManager="GridLayoutManager"
+        app:spanCount="2"/>
 
     <Button
         android:id="@+id/background_music_btn"

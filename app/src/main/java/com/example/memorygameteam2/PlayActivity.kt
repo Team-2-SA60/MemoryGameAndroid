@@ -1,6 +1,5 @@
 package com.example.memorygameteam2
 
-import android.R.attr.bitmap
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
@@ -26,8 +25,6 @@ import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.playactivity.Card
 import com.example.memorygameteam2.playactivity.CardAdapter
 import com.example.memorygameteam2.soundeffect.SoundManager
-import androidx.core.content.edit
-import java.io.File
 import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +34,7 @@ import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import nl.dionsegijn.konfetti.xml.KonfettiView
+import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -178,7 +176,7 @@ class PlayActivity : AppCompatActivity() {
         if (firstPos != null) {
             val prev = firstPos!!
             // if second tapped card matches
-            //if (cards[prev].imageRes == cards[pos].imageRes) { // old code
+            // if (cards[prev].imageRes == cards[pos].imageRes) { // old code
             if (cards[prev].image == cards[pos].image) {
                 cards[prev].isMatched = true
                 cards[pos].isMatched = true
