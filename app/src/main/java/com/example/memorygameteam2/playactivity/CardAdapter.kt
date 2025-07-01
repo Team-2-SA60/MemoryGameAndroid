@@ -19,10 +19,21 @@ class CardAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int,
-    ) = ViewHolder(
-        LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_card, parent, false),
-    )
+    ): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card, parent, false)
+
+        // Get current layout parameters for item_card (specifically FrameLayout)
+        val params = view.layoutParams
+
+        // Set the height of each item_card to ~23% of parent (recycler view)
+        params.height = (parent.height * 0.23).toInt() - 5
+
+        // Set parameter with updated height back to each item_card
+        view.layoutParams = params
+
+        // Now 4 rows of item_card will fit dynamically on different sized phones
+        return ViewHolder(view)
+    }
 
     override fun onBindViewHolder(
         holder: ViewHolder,
@@ -37,7 +48,7 @@ class CardAdapter(
         holder.imgFront.visibility =
             if (card.isFaceUp || card.isMatched) View.VISIBLE else View.GONE
         if (card.isFaceUp || card.isMatched) {
-            //holder.imgFront.setImageResource(card.imageRes) // old code
+            // holder.imgFront.setImageResource(card.imageRes) // old code
             holder.imgFront.setImageBitmap(card.image)
         }
 

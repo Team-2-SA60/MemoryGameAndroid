@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.Locale
 
 class LeaderboardActivity : AppCompatActivity() {
@@ -106,10 +107,7 @@ class LeaderboardActivity : AppCompatActivity() {
                 } else {
                     // This is when response not between code 200-300
                     // so Not FOUND, UNAUTHORIZED etc will go through below
-                    withContext(Dispatchers.Main) {
-                        showToast("Failed to retrieve ranking list ${response.code()}")
-                    }
-                    Log.e("API_error", "Response failed: ${response.code()}")
+                    throw IOException("HTTP ${response.code()} ${response.message()}")
                 }
             } catch (e: Exception) {
                 // This is when there's an issue with the API request
@@ -118,7 +116,7 @@ class LeaderboardActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     showToast(e.toString())
                 }
-                Log.e("API_exception", e.toString())
+                Log.e("LeaderboardAPI", "Exception", e)
             }
         }
     }
