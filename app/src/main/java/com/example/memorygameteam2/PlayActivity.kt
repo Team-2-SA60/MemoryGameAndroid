@@ -41,6 +41,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import com.example.memorygameteam2.PrefsHelper
 
 class PlayActivity : AppCompatActivity() {
     companion object {
@@ -68,16 +69,21 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
-        // check if user isPremium
-        // dummy test: seed a fake premium flag
-        val gamePrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        if (!gamePrefs.contains(KEY_IS_PREMIUM)) {
-            gamePrefs.edit {
-                putBoolean(KEY_IS_PREMIUM, true)
-            }
-        }
+//        // check if user isPremium
+//        // dummy test: seed a fake premium flag
+//        val gamePrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+//        if (!gamePrefs.contains(KEY_IS_PREMIUM)) {
+//            gamePrefs.edit {
+//                putBoolean(KEY_IS_PREMIUM, true)
+//            }
+//        }
         // real data usage
-        val isPremium = gamePrefs.getBoolean(KEY_IS_PREMIUM, false)
+//        val isPremium = gamePrefs.getBoolean(KEY_IS_PREMIUM, false)
+//        advert = findViewById<ImageView>(R.id.ivAdvert)
+//        advert.visibility = if (isPremium) View.GONE else View.VISIBLE
+
+        val prefsHelper = PrefsHelper(this)
+        val isPremium = prefsHelper.isPremium()
         advert = findViewById<ImageView>(R.id.ivAdvert)
         advert.visibility = if (isPremium) View.GONE else View.VISIBLE
 
@@ -213,9 +219,11 @@ class PlayActivity : AppCompatActivity() {
         // send score backend - hardcoded for testing first
         // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
         // val userId = prefs.getInt("userId", 0)
-        val userId = 2
+        val prefsHelper = PrefsHelper(this)
+        val userId = prefsHelper.getUserID()
+        val userIdInt = userId?.toIntOrNull() ?: 0
         val elapsedSeconds = computeElapsedSeconds()
-        postScore(userId, elapsedSeconds)
+        postScore(userIdInt, elapsedSeconds)
     }
 
     private fun playWinSound() {

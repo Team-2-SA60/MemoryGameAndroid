@@ -117,7 +117,8 @@ class LoginScreen : AppCompatActivity() {
                             // Save user data
                             prefsHelper.saveUser(
                                 loggedInUser.username!!,
-                                loggedInUser.isPremium ?: false
+                                loggedInUser.isPremium ?: false,
+                                loggedInUser.id.toString()
                             )
                             navigateToMainScreen()
                         } else {
