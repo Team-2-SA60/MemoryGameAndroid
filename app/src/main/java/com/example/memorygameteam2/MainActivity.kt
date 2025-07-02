@@ -11,6 +11,7 @@ import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.MenuAdapter
 import com.example.memorygameteam2.model.Menu
 import com.example.memorygameteam2.soundeffect.SoundManager
+import com.example.memorygameteam2.PrefsHelper
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     // temporary items on menu for testing/developing purpose
     private val menuList =
-        listOf(
+        mutableListOf(
             Menu("Login"),
             Menu("Fetch"),
             Menu("Play"),
@@ -58,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     private fun initRecyclerView() {
         binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
         menuAdapter =
-            MenuAdapter(menuList) { selectedItem ->
+            MenuAdapter(getCurrentMenuList()) { selectedItem ->
                 SoundManager.playButtonClick(this)
                 launch(selectedItem)
             }
@@ -88,10 +89,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun getCurrentMenuList(): List<Menu> {
+        val isLoggedIn = !PrefsHelper(this).getUsername().isNullOrEmpty()
+        return menuList.map { menuItem ->
+            if (menuItem.text.equals("login", ignoreCase = true)) {
+                if (isLoggedIn) menuItem.copy(text = "Logout") else menuItem
+            } else {
+                menuItem
+            }
+        }
+    }
+
     // temporary menu activity explicit intents
     private fun launch(selectedItem: Menu) {
         when (selectedItem.text.lowercase()) {
             // launch leaderboard activity
+            "logout" -> {
+                // Perform logout
+                PrefsHelper(this).clearUser()
+                SoundManager.controlBackgroundMusic(this, SoundManager.STOP_BACKGROUND_MUSIC)
+                startActivity(Intent(this, LoginScreen::class.java))
+                finish()
+            }
             "leaderboard" -> {
                 activityIntent = Intent(this, LeaderboardActivity::class.java)
                 startActivity(activityIntent)
