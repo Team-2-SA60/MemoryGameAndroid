@@ -12,20 +12,19 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.memorygameteam2.PlayActivity
-import com.example.memorygameteam2.R
 import com.example.memorygameteam2.fetch.FetchCard
 import com.example.memorygameteam2.fetch.FetchCardAdapter
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -36,13 +35,23 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.collections.MutableList
 
 class FetchActivity : AppCompatActivity() {
 
     private var fetchJob: Job? = null
-    private var numberSelected: Int = 0
+    private var fetchImages: MutableList<FetchCard> = MutableList(20) { FetchCard() }
     private var selectedImages: MutableList<Int> = mutableListOf()
-    private lateinit var fetchImages: MutableList<FetchCard>
+    private var done: Boolean = false
+
+    // all necessary items
+
+    private lateinit var dir: File
+    private lateinit var rv: RecyclerView
+    private lateinit var fetchButton: Button
+    private lateinit var progressBar: ProgressBar
+    private lateinit var progressText: TextView
+    private lateinit var playButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,86 +63,107 @@ class FetchActivity : AppCompatActivity() {
             insets
         }
 
+        dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        rv = findViewById<RecyclerView>(R.id.fetch_rv)
+        fetchButton = findViewById<Button>(R.id.fetch_button)
+        progressBar = findViewById<ProgressBar>(R.id.progress_bar)
+        progressText = findViewById<TextView>(R.id.progress_text)
+        playButton = findViewById<Button>(R.id.play_button)
+
+        initRv()
         initButtons()
     }
 
-    private fun initButtons() {
-        val fetchButton = findViewById<Button>(R.id.fetch_button)
-        val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        val progressText = findViewById<TextView>(R.id.progress_text)
-        val playButton = findViewById<Button>(R.id.play_button)
+    // initialise the RecyclerView with placeholder cards
 
+    private fun initRv() {
+        rv.layoutManager = GridLayoutManager(this@FetchActivity, 4)
+        rv.adapter = FetchCardAdapter(fetchImages) { pos ->
+            onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
+        }
+    }
+
+    // set onClickListener events
+
+    private fun initButtons() {
+
+        // when 'Fetch' is clicked, fetch images from URL and display in view
         fetchButton.setOnClickListener {
             val fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
 
-            // Cancel previous job if it's running
+            // cancel previous coroutine if it is already running
             fetchJob?.cancel()
+            clearAll()
 
+            // launch fetchJob coroutine attached to FetchActivity lifecycle
+            // we call our suspend functions within the coroutine (suspend -> pause while operations running)
             fetchJob = lifecycleScope.launch {
                 try {
-                    fetchImages(fetchLink, progressBar, progressText)
-                } catch (e: CancellationException) {
-                    // Job was cancelled - normal flow
-                    Log.d("FetchActivity", "Fetching cancelled")
+                    fetchImages(fetchLink)
                 } catch (e: Exception) {
                     handleFetchError(e)
                 }
             }
         }
 
+        // when 'Play' is clicked, pass selected images and start PlayActivity
         playButton.setOnClickListener {
             val imagePosArray = selectedImages.toCollection(ArrayList())
-            val intent = Intent(this, PlayActivity::class.java)
-            intent.putIntegerArrayListExtra("imageList", imagePosArray)
-            startActivity(intent)
+            Intent(this@FetchActivity, PlayActivity::class.java).also {
+                it.putIntegerArrayListExtra("imageList", imagePosArray)
+                startActivity(it)
+            }
         }
     }
 
-    private suspend fun fetchImages(
-        fetchLink: String,
-        progressBar: ProgressBar,
-        progressText: TextView
-    ) {
+    /*  Function to fetch images and display to RecyclerView
+        1. getHtmlContent: Get all HTML content from specified URL
+        2. extractImageUrls: Get only image src URL within the HTML content
+        3. downloadToFile: Downloads images into our Android application
+    */
+
+    private suspend fun fetchImages(fetchLink: String) {
+
+        // run fetch operation (on IO thread)
         withContext(Dispatchers.IO) {
             val html = getHtmlContent(fetchLink)
             val imageUrls = extractImageUrls(html.toString())
 
-            fetchImages = mutableListOf()
-
+            // for each image URL in the HTML page, download and display it on our card
             for ((index, imageUrl) in imageUrls.withIndex()) {
-                if (fetchImages.size >= 20) break
+                if (index >= 20) break
 
-                val file = makeFile("image_$index.jpg")
+                val file = File(dir, "image_$index.jpg")
                 val success = downloadToFile(imageUrl, file)
 
                 if (success) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
                     if (bitmap != null) {
-                        fetchImages.add(FetchCard(bitmap))
+                        // add image to a card if successful decoding
+                        fetchImages[index] = FetchCard(bitmap)
+
+                        // update the RecyclerView cards (on UI thread)
+                        withContext(Dispatchers.Main) {
+                            rv.adapter?.notifyItemChanged(index)
+                            progressBar.progress = ((index + 1) * 100 / 20)
+                            progressText.text = "${index + 1} / 20 images loaded..."
+                        }
                     } else {
+                        // delete file if there is error in decoding
                         file.delete()
                     }
                 }
 
-                // Update UI on main thread
-                withContext(Dispatchers.Main) {
-                    if (fetchImages.size >= 20) {
-                        progressBar.progress = 100
-                        progressText.text = "Select 6 images plz!"
-                    } else {
-                        progressBar.progress = ((index + 1) * 100 / 20)
-                        progressText.text = "${index + 1} / 20 images loaded..."
-                    }
-                }
+                delay(100) // add small delay between downloads to make it visible
             }
 
+            // update progress once all items are loaded (on UI thread)
             withContext(Dispatchers.Main) {
-                val rv = findViewById<RecyclerView>(R.id.fetch_rv)
-                rv.layoutManager = GridLayoutManager(this@FetchActivity, 4)
-                rv.adapter = FetchCardAdapter(fetchImages) { pos ->
-                    onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
-                }
+                progressBar.progress = 100
+                progressText.text = "Select 6 images plz!"
             }
+
+            done = true
         }
     }
 
@@ -141,11 +171,11 @@ class FetchActivity : AppCompatActivity() {
         when (e) {
             is FileNotFoundException -> {
                 clearAll()
-                showToast("Please enter a valid URL")
+                showToast("Please ensure URL has valid images")
             }
             is IOException -> {
                 clearAll()
-                showToast("Network error, please try again")
+                showToast("Please enter a valid URL")
             }
             else -> {
                 clearAll()
@@ -156,12 +186,68 @@ class FetchActivity : AppCompatActivity() {
     }
 
     private fun showToast(message: String) {
-        lifecycleScope.launchWhenResumed {
-            Toast.makeText(this@FetchActivity, message, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                Toast.makeText(this@FetchActivity, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
+    // 1. Get all HTML content from specified URL
+
+    @Throws(IOException::class)
+    private suspend fun getHtmlContent(url: String): String {
+        return withContext(Dispatchers.IO) {
+            val connection = URL(url).openConnection() as HttpURLConnection
+            connection.setRequestProperty("User-Agent", "Mozilla")
+            connection.inputStream.use { input ->
+                input.bufferedReader().use { reader ->
+                    reader.readText()
+                }
+            }
+        }
+    }
+
+    // 2. Get only image src URL within the HTML content
+
+    private fun extractImageUrls(html: String): List<String> {
+        val doc: Document = Jsoup.parse(html)
+        val imgElements: Elements = doc.select("img[src]")
+        return imgElements
+            .map { it.attr("src") }
+            .filter { src ->
+                src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
+            }
+    }
+
+    // 3. Downloads images into our Android application
+
+    @Throws(IOException::class)
+    private suspend fun downloadToFile(imageUrl: String, file: File): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                URL(imageUrl).openStream().use { input ->
+                    file.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                true
+            } catch (e: IOException) {
+                file.delete() // delete file if there is error in downloading
+                false
+            }
+        }
+    }
+
+    /*  Function to handle clicked cards
+        1. Updates card selected status
+        2. Updates number of cards selected and UI effect
+        3. Once 6 images selected, 'Play' button appears
+    */
+
     private fun onFetchCardClicked(pos: Int, adapter: FetchCardAdapter) {
+        if (!done) return // if not yet finished fetching, disallow click
+
         val selectedImage = fetchImages[pos]
         val playButton = findViewById<Button>(R.id.play_button)
 
@@ -189,71 +275,20 @@ class FetchActivity : AppCompatActivity() {
         }
     }
 
-    // Network and file operations remain the same but add suspend modifier
-    @Throws(IOException::class)
-    private suspend fun getHtmlContent(url: String): String {
-        return withContext(Dispatchers.IO) {
-            val connection = URL(url).openConnection() as HttpURLConnection
-            connection.setRequestProperty("User-Agent", "Mozilla")
-            connection.inputStream.use { input ->
-                input.bufferedReader().use { reader ->
-                    reader.readText()
-                }
-            }
-        }
-    }
-
-    private fun extractImageUrls(html: String): List<String> {
-        val doc: Document = Jsoup.parse(html)
-        val imgElements: Elements = doc.select("img[src]")
-        return imgElements
-            .map { it.attr("src") }
-            .filter { src ->
-                src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
-            }
-    }
-
-    private fun makeFile(filename: String): File {
-        val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File(dir, filename)
-    }
-
-    @Throws(IOException::class)
-    private suspend fun downloadToFile(imageUrl: String, file: File): Boolean {
-        return withContext(Dispatchers.IO) {
-            try {
-                URL(imageUrl).openStream().use { input ->
-                    file.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                true
-            } catch (e: IOException) {
-                file.delete()
-                false
-            }
-        }
-    }
+    // clean slate when re-fetching images from URL
 
     private fun clearAll() {
-        val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        dir?.listFiles()?.forEach { it.delete() }
-
-        fetchImages.clear()
-        val rv = findViewById<RecyclerView>(R.id.fetch_rv)
-        rv.adapter?.notifyDataSetChanged()
-
-        val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
-        val progressText = findViewById<TextView>(R.id.progress_text)
-        progressBar.progress = 0
-        progressText.text = "0 / 20 images loaded..."
-
-        val playButton = findViewById<Button>(R.id.play_button)
-        playButton.visibility = View.INVISIBLE
-        playButton.text = ""
-        playButton.isEnabled = false
-
-        selectedImages.clear()
+        dir.listFiles()?.forEach { it.delete() } // delete all existing files
+        fetchImages = MutableList(20) { FetchCard() } // renew all card from list
+        selectedImages = mutableListOf() // remove all selected images information
+        rv.adapter?.notifyDataSetChanged() // update RecyclerView on removal
+        progressBar.progress = 0 // set progress back to 0
+        progressText.text = "Enter a URL to fetch images" // set progress text back to 0
+        playButton.visibility = View.INVISIBLE // remove visibility of play button
+        playButton.text = "" // remove text for play button
+        playButton.isEnabled = false // disable play button
+        initRv() // re-initialise RecyclerView
+        done = false // reset 'done' status
     }
 
     override fun onDestroy() {
