@@ -4,12 +4,15 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -23,6 +26,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -58,46 +62,86 @@ class FetchActivity : AppCompatActivity() {
         // set onClick listener when 'Fetch' is pressed
         fetchButton.setOnClickListener {
             var fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
-            bgThread =
-                Thread {
-                    val html = getHtmlContent(fetchLink)
-                    val imageUrls = extractImageUrls(html)
-                    fetchImages = mutableListOf<FetchCard>()
 
-                    // fetch images from URL and present image on cards
-                    for ((index, imageUrl) in imageUrls.withIndex()) {
-                        if (fetchImages.size == 20) {
-                            break
-                        }
-                        var file = makeFile("image_$index.jpg")
-                        var success = downloadToFile(imageUrl, file)
-                        if (success) {
-                            getImage(file)
+            // if 'Fetch' already clicked, cancel current 'Fetch' first
+
+            if (bgThread != null) {
+                bgThread?.interrupt()
+            } else {
+                bgThread = Thread {
+                    try {
+                        val html = getHtmlContent(fetchLink)
+                        val imageUrls = extractImageUrls(html.toString())
+
+                        if (Thread.interrupted()) {
+                            throw InterruptedException()
                         }
 
-                        // update progress bar and progress text
-                        runOnUiThread {
-                            if (fetchImages.size == 20) {
-                                progressBar.progress = 100
-                                progressText.text = "Select 6 images plz!"
-                            } else {
-                                progressBar.progress = ((index + 1) * 100 / 20)
-                                progressText.text = "${index + 1} / 20 images loaded..."
+                        fetchImages = mutableListOf<FetchCard>()
+
+                        // fetch images from URL and present image on cards
+                        for ((index, imageUrl) in imageUrls.withIndex()) {
+                            if (Thread.interrupted()) {
+                                throw InterruptedException()
+                                break
+                            }
+
+                            // if 20 images fetched, stop downloading images
+                            if (fetchImages.size >= 20) {
+                                break
+                            }
+
+                            var file = makeFile("image_$index.jpg")
+                            var success = downloadToFile(imageUrl, file)
+
+                            if (success) {
+                                getImage(file)
+                            }
+
+                            // update progress bar and progress text
+                            runOnUiThread {
+                                if (fetchImages.size == 20) {
+                                    progressBar.progress = 100
+                                    progressText.text = "Select 6 images plz!"
+                                } else {
+                                    progressBar.progress = ((index + 1) * 100 / 20)
+                                    progressText.text = "${index + 1} / 20 images loaded..."
+                                }
                             }
                         }
-                    }
 
-                    runOnUiThread {
-                        // set up RecyclerView with 4 columns
-                        var rv = findViewById<RecyclerView>(R.id.fetch_rv)
-                        rv.layoutManager = GridLayoutManager(this, 4)
-                        rv.adapter =
-                            FetchCardAdapter(fetchImages) { pos ->
+                        runOnUiThread {
+                            // set up RecyclerView with 4 columns
+                            var rv = findViewById<RecyclerView>(R.id.fetch_rv)
+                            rv.layoutManager = GridLayoutManager(this, 4)
+                            rv.adapter = FetchCardAdapter(fetchImages) { pos ->
                                 onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
                             }
+                        }
+                        bgThread = null
+                    } catch (e: FileNotFoundException) {
+                        bgThread = null
+                        runOnUiThread {
+                            Toast.makeText(this, "Please enter a valid URL", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: InterruptedException) {
+                        bgThread = null
+                        runOnUiThread {
+                            clearAll()
+                            Toast.makeText(this, "Re-fetching images...", Toast.LENGTH_SHORT).show()
+                        }
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            fetchButton.performClick()
+                        }, 300)
+                    } catch (e: Exception) {
+                        bgThread = null
+                        runOnUiThread {
+                            Toast.makeText(this, "Error, please try again", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
-            bgThread?.start()
+                bgThread?.start()
+            }
         }
 
         // when 'Play' is pressed: pass selected image info to Play Activity
@@ -107,6 +151,23 @@ class FetchActivity : AppCompatActivity() {
             intent.putIntegerArrayListExtra("imageList", imagePosArray)
             startActivity(intent)
         }
+    }
+
+    // function clear all items
+    private fun clearAll() {
+        val dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        if (dir != null && dir.exists()) {
+            dir.listFiles()?.forEach { file ->
+                file.delete()
+            }
+        }
+        fetchImages.clear()
+        val rv = findViewById<RecyclerView>(R.id.fetch_rv)
+        rv.adapter?.notifyDataSetChanged()
+        val progressBar = findViewById<ProgressBar>(R.id.progress_bar)
+        val progressText = findViewById<TextView>(R.id.progress_text)
+        progressBar.progress = 0
+        progressText.text = "0 / 20 images loaded..."
     }
 
     // function to handle clicked Card View
@@ -132,7 +193,7 @@ class FetchActivity : AppCompatActivity() {
                     playButton.visibility = View.VISIBLE
                     playButton.text = "${selectedImages.size} / 6 images selected"
                 }
-                Log.d("clickChange", selectedImages.toString()) // for checking, TO REMOVE!
+                Log.d("clickChange", selectedImages.toString()) // for checking
             }
         } else {
             playButton.isEnabled = false
@@ -141,13 +202,13 @@ class FetchActivity : AppCompatActivity() {
             selectedImages.remove(pos)
             adapter.notifyItemChanged(pos)
             playButton.text = "${selectedImages.size} / 6 images selected"
-            Log.d("clickChange", selectedImages.toString()) // for checking, TO REMOVE!
+            Log.d("clickChange", selectedImages.toString()) // for checking
         }
     }
 
     // 1. to get images from web page, get the webpage HTML source
 
-    private fun getHtmlContent(url: String): String {
+    private fun getHtmlContent(url: String): String? {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.setRequestProperty("User-Agent", "Mozilla")
 
@@ -164,7 +225,6 @@ class FetchActivity : AppCompatActivity() {
         val doc: Document = Jsoup.parse(html)
         val imgElements: Elements = doc.select("img[src]")
         return imgElements
-            // .take(20)               // limit to 20 items. // TO AMEND!
             .map { it.attr("src") } // maps values of "src" attribute (link) as List of String.
             .filter { src ->
                 src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
@@ -190,9 +250,9 @@ class FetchActivity : AppCompatActivity() {
             }
             true
         } catch (e: IOException) {
-            Log.e("DownloadError", "Error downloading image")
+            Log.e("DownloadError", "Error downloading image") // for checking
             file.delete()
-            false
+            false // does not pass file if failed to download
         }
     }
 
@@ -207,7 +267,6 @@ class FetchActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        bgThread?.interrupt()
         bgThread = null
     }
 }
