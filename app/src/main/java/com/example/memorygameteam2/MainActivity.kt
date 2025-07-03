@@ -22,10 +22,8 @@ class MainActivity : AppCompatActivity() {
     // temporary items on menu for testing/developing purpose
     private val menuList =
         mutableListOf(
-            Menu("Login"),
-            Menu("Fetch"),
             Menu("Play"),
-            Menu("Leaderboard"),
+            Menu("Login"),
         )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
+        binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 1)
         menuAdapter =
             MenuAdapter(getCurrentMenuList()) { selectedItem ->
                 SoundManager.playButtonClick(this)
@@ -111,19 +109,12 @@ class MainActivity : AppCompatActivity() {
                 startActivity(Intent(this, LoginScreen::class.java))
                 finish()
             }
-            "leaderboard" -> {
-                activityIntent = Intent(this, LeaderboardActivity::class.java)
-                startActivity(activityIntent)
-            }
-            "play" -> {
-                activityIntent = Intent(this, PlayActivity::class.java)
-                startActivity(activityIntent)
-            }
+
             "login" -> {
                 activityIntent = Intent(this, LoginScreen::class.java)
                 startActivity(activityIntent)
             }
-            "fetch" -> {
+            "play" -> {
                 activityIntent = Intent(this, FetchActivity::class.java)
                 startActivity(activityIntent)
             }
