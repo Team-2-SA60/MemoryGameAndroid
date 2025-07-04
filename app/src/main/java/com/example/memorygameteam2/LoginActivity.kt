@@ -34,7 +34,6 @@ class LoginActivity : AppCompatActivity() {
                 loginUser()
             }
         }
-
     }
 
     private fun validateInput(

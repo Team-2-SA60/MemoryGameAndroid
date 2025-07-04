@@ -83,7 +83,6 @@ class LeaderboardActivity : AppCompatActivity() {
 
     private fun initButtons() {
         binding.apply {
-
             playAgainButton.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
                 val intent = Intent(this@LeaderboardActivity, FetchActivity::class.java)
