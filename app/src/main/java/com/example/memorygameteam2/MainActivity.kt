@@ -11,7 +11,6 @@ import com.example.memorygameteam2.databinding.ActivityMainBinding
 import com.example.memorygameteam2.menu.MenuAdapter
 import com.example.memorygameteam2.model.Menu
 import com.example.memorygameteam2.soundeffect.SoundManager
-import com.example.memorygameteam2.PrefsHelper
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
