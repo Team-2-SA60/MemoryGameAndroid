@@ -29,7 +29,7 @@
             android:name=".LeaderboardActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginScreen"
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

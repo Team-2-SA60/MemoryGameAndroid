@@ -2,24 +2,22 @@ package com.example.memorygameteam2
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.InputType
-import android.view.MotionEvent
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.memorygameteam2.databinding.ActivityLoginScreenBinding
+import com.example.memorygameteam2.databinding.ActivityLoginBinding
 import com.example.memorygameteam2.model.User
 import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.launch
 
-class LoginScreen : AppCompatActivity() {
-    private lateinit var binding: ActivityLoginScreenBinding
+class LoginActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var prefsHelper: PrefsHelper
     private val apiService by lazy { RetroFitClient.api }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginScreenBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         prefsHelper = PrefsHelper(this)

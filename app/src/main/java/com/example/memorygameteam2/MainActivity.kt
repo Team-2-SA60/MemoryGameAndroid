@@ -105,12 +105,12 @@ class MainActivity : AppCompatActivity() {
                 // Perform logout
                 PrefsHelper(this).clearUser()
                 SoundManager.controlBackgroundMusic(this, SoundManager.STOP_BACKGROUND_MUSIC)
-                startActivity(Intent(this, LoginScreen::class.java))
+                startActivity(Intent(this, LoginActivity::class.java))
                 finish()
             }
 
             "login" -> {
-                activityIntent = Intent(this, LoginScreen::class.java)
+                activityIntent = Intent(this, LoginActivity::class.java)
                 startActivity(activityIntent)
             }
             "play" -> {
