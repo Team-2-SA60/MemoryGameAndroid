@@ -48,7 +48,7 @@
             app:layoutManager="GridLayoutManager"
             app:spanCount="3"
             tools:itemCount="12"
-            tools:listitem="@layout/item_card"/>
+            tools:listitem="@layout/item_card" />
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/swSound"
@@ -64,7 +64,7 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:contentDescription="@string/advert"
-            android:src="@drawable/advert_1" />
+            tools:visibility="visible" />
 
     </LinearLayout>
 

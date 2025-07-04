@@ -7,6 +7,7 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.widget.Chronometer
@@ -28,7 +29,10 @@ import com.example.memorygameteam2.soundeffect.SoundManager
 import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import nl.dionsegijn.konfetti.core.Party
@@ -45,8 +49,6 @@ import java.util.concurrent.TimeUnit
 class PlayActivity : AppCompatActivity() {
     companion object {
         private const val TOTAL_PAIRS = 6
-        private const val PREFS_NAME = "game_prefs"
-        private const val KEY_IS_PREMIUM = "isPremium"
         const val CURRENT_GAME_ID = "CURRENT_GAME_ID"
     }
 
@@ -57,6 +59,7 @@ class PlayActivity : AppCompatActivity() {
     private lateinit var timer: Chronometer
     private lateinit var tvMatches: TextView
     private lateinit var advert: ImageView
+    private var adJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,18 +71,14 @@ class PlayActivity : AppCompatActivity() {
             insets
         }
 
-        // check if user isPremium
-        // dummy test: seed a fake premium flag
-        val gamePrefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        if (!gamePrefs.contains(KEY_IS_PREMIUM)) {
-            gamePrefs.edit {
-                putBoolean(KEY_IS_PREMIUM, true)
-            }
-        }
-        // real data usage
-        val isPremium = gamePrefs.getBoolean(KEY_IS_PREMIUM, false)
+        // display ads
+        val prefsHelper = PrefsHelper(this)
+        val isPremium = prefsHelper.isPremium()
         advert = findViewById<ImageView>(R.id.ivAdvert)
         advert.visibility = if (isPremium) View.GONE else View.VISIBLE
+        if (!isPremium) {
+            adJob = startAdRotation()
+        }
 
         // ref timer, matches
         timer = findViewById(R.id.timer)
@@ -124,26 +123,6 @@ class PlayActivity : AppCompatActivity() {
             )
         }
     }
-
-//    private fun createDeck(): MutableList<Card> {
-//        val images =
-//            listOf(
-//                R.drawable.bird_1,
-//                R.drawable.bird_2,
-//                R.drawable.bird_3,
-//                R.drawable.bird_4,
-//                R.drawable.bird_5,
-//                R.drawable.bird_6,
-//            )
-//        val cards = mutableListOf<Card>()
-//        var id = 1
-//        for (img in images) {
-//            cards += Card(id++, img)
-//            cards += Card(id++, img)
-//        }
-//        cards.shuffle() // shuffle elements in mutable list
-//        return cards
-//    }
 
     // testing createDeck() with selected images
     private fun createDeck(): MutableList<Card> {
@@ -207,25 +186,21 @@ class PlayActivity : AppCompatActivity() {
     }
 
     private fun onGameWin() {
-        playWinSound()
-        celebrateWin()
-        showWinToast()
-        // send score backend - hardcoded for testing first
-        // val prefs = getSharedPreferences("game_prefs", MODE_PRIVATE)
-        // val userId = prefs.getInt("userId", 0)
-        val userId = 2
-        val elapsedSeconds = computeElapsedSeconds()
-        postScore(userId, elapsedSeconds)
-    }
-
-    private fun playWinSound() {
+        // play win sound
         if (soundEnabled) {
             SoundManager.playGameWin(this)
         }
-    }
+        celebrateWin()
 
-    private fun showWinToast() {
+        // show win toast
         Toast.makeText(this, "You Win!", Toast.LENGTH_LONG).show()
+
+        // send score backend
+        val prefsHelper = PrefsHelper(this)
+        val userId = prefsHelper.getUserID()
+        val userIdInt = userId?.toIntOrNull() ?: 0
+        val elapsedSeconds = computeElapsedSeconds()
+        postScore(userIdInt, elapsedSeconds)
     }
 
     private fun computeElapsedSeconds(): Int {
@@ -298,5 +273,34 @@ class PlayActivity : AppCompatActivity() {
             }
         startActivity(intent)
         finish()
+    }
+
+    // fetch ad every 30s
+    private fun startAdRotation(): Job {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        return scope.launch {
+            while (isActive) {
+                try {
+                    val response = RetroFitClient.api.getRandomAdvertisement()
+                    if (response.isSuccessful) {
+                        val bytes = Base64.decode(response.body()!!.bytes(), Base64.DEFAULT)
+                        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        withContext(Dispatchers.Main) {
+                            advert.setImageBitmap(bitmap)
+                            advert.requestLayout()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("PlayActivity", "Error fetching ad", e)
+                }
+                delay(30_000)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adJob?.cancel()
+        adJob?.cancel()
     }
 }

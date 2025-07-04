@@ -20,11 +20,9 @@ class MainActivity : AppCompatActivity() {
 
     // temporary items on menu for testing/developing purpose
     private val menuList =
-        listOf(
-            Menu("Login"),
-            Menu("Fetch"),
+        mutableListOf(
             Menu("Play"),
-            Menu("Leaderboard"),
+            Menu("Login"),
         )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,9 +54,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
+        binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 1)
         menuAdapter =
-            MenuAdapter(menuList) { selectedItem ->
+            MenuAdapter(getCurrentMenuList()) { selectedItem ->
                 SoundManager.playButtonClick(this)
                 launch(selectedItem)
             }
@@ -88,23 +86,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun getCurrentMenuList(): List<Menu> {
+        val isLoggedIn = !PrefsHelper(this).getUsername().isNullOrEmpty()
+        return menuList.map { menuItem ->
+            if (menuItem.text.equals("login", ignoreCase = true)) {
+                if (isLoggedIn) menuItem.copy(text = "Logout") else menuItem
+            } else {
+                menuItem
+            }
+        }
+    }
+
     // temporary menu activity explicit intents
     private fun launch(selectedItem: Menu) {
         when (selectedItem.text.lowercase()) {
             // launch leaderboard activity
-            "leaderboard" -> {
-                activityIntent = Intent(this, LeaderboardActivity::class.java)
-                startActivity(activityIntent)
+            "logout" -> {
+                // Perform logout
+                PrefsHelper(this).clearUser()
+                SoundManager.controlBackgroundMusic(this, SoundManager.STOP_BACKGROUND_MUSIC)
+                startActivity(Intent(this, LoginScreen::class.java))
+                finish()
             }
-            "play" -> {
-                activityIntent = Intent(this, PlayActivity::class.java)
-                startActivity(activityIntent)
-            }
+
             "login" -> {
                 activityIntent = Intent(this, LoginScreen::class.java)
                 startActivity(activityIntent)
             }
-            "fetch" -> {
+            "play" -> {
                 activityIntent = Intent(this, FetchActivity::class.java)
                 startActivity(activityIntent)
             }
