@@ -1,5 +1,6 @@
 package com.example.memorygameteam2
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Base64
@@ -82,9 +83,16 @@ class LeaderboardActivity : AppCompatActivity() {
 
     private fun initButtons() {
         binding.apply {
-            backButton.setOnClickListener {
+
+            playAgainButton.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
                 finish()
+            }
+
+            backButton.setOnClickListener {
+                SoundManager.playButtonClick(this@LeaderboardActivity)
+                val intent = Intent(this@LeaderboardActivity, MainActivity::class.java)
+                startActivity(intent);
             }
 
             todayBtn.setOnClickListener {
