@@ -29,7 +29,12 @@ class FetchCardAdapter(
         pos: Int,
     ) {
         val card = cardList[pos]
-        holder.fetchedImage.setImageBitmap(card.image) // sets image for fetch_card ImageView
+
+        if (card.image != null) {
+            holder.fetchedImage.setImageBitmap(card.image) // sets image for fetch_card ImageView
+        } else {
+            holder.fetchedImage.setImageResource(R.drawable.card_back) // set default for ImageView before loading
+        }
 
         if (card.isSelected) {
             // if card is selected, make it look "popped up"

@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.implementation
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
@@ -56,11 +57,13 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation(libs.protolite.well.known.types)
     implementation("nl.dionsegijn:konfetti-xml:2.0.5")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
 }
 
 ktlint {
