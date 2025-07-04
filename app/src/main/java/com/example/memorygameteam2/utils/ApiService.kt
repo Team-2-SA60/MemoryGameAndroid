@@ -4,6 +4,7 @@ import com.example.memorygameteam2.model.Game
 import com.example.memorygameteam2.model.GameDto
 import com.example.memorygameteam2.model.Rank
 import com.example.memorygameteam2.model.User
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -31,4 +32,7 @@ interface ApiService {
     suspend fun findGame(
         @Path("id") gameId: Int,
     ): Response<GameDto>
+
+    @GET("api/Advertisement/random")
+    suspend fun getRandomAdvertisement(): Response<ResponseBody>
 }

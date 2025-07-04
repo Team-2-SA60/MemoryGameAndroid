@@ -9,11 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.memorygameteam2.databinding.ActivityLoginScreenBinding
 import com.example.memorygameteam2.model.User
-import com.example.memorygameteam2.utils.ApiService
+import com.example.memorygameteam2.utils.RetroFitClient
 import kotlinx.coroutines.launch
-import com.example.memorygameteam2.utils.RetroFitClient;
-
-
 
 class LoginScreen : AppCompatActivity() {
     private lateinit var binding: ActivityLoginScreenBinding
@@ -57,22 +54,27 @@ class LoginScreen : AppCompatActivity() {
         if (currentInputType == InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_CLASS_TEXT) {
             binding.password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
             binding.password.setCompoundDrawablesWithIntrinsicBounds(
-                0, 0,
+                0,
+                0,
                 R.drawable.ic_baseline_eye_off_24,
-                0
+                0,
             )
         } else {
             binding.password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_CLASS_TEXT
             binding.password.setCompoundDrawablesWithIntrinsicBounds(
-                0, 0,
+                0,
+                0,
                 R.drawable.ic_baseline_eye_24,
-                0
+                0,
             )
         }
         binding.password.setSelection(binding.password.text.length)
     }
 
-    private fun validateInput(username: String, password: String): Boolean {
+    private fun validateInput(
+        username: String,
+        password: String,
+    ): Boolean {
         var isValid = true
 
         if (username.isEmpty()) {
@@ -103,11 +105,12 @@ class LoginScreen : AppCompatActivity() {
                 showLoading(true)
 
                 // Create user object with only non-null fields
-                val user = User(
-                    username = username,
-                    password = password
-                    // Other fields remain null
-                )
+                val user =
+                    User(
+                        username = username,
+                        password = password,
+                        // Other fields remain null
+                    )
 
                 val response = apiService.validateUser(user)
 
@@ -118,7 +121,7 @@ class LoginScreen : AppCompatActivity() {
                             prefsHelper.saveUser(
                                 loggedInUser.username!!,
                                 loggedInUser.isPremium ?: false,
-                                loggedInUser.id.toString()
+                                loggedInUser.id.toString(),
                             )
                             navigateToMainScreen()
                         } else {
