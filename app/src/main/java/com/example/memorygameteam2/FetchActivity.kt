@@ -36,6 +36,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.collections.MutableList
+import kotlin.coroutines.cancellation.CancellationException
 
 class FetchActivity : AppCompatActivity() {
 
@@ -112,6 +113,7 @@ class FetchActivity : AppCompatActivity() {
             Intent(this@FetchActivity, PlayActivity::class.java).also {
                 it.putIntegerArrayListExtra("imageList", imagePosArray)
                 startActivity(it)
+                finish()
             }
         }
     }
@@ -176,6 +178,10 @@ class FetchActivity : AppCompatActivity() {
             is IOException -> {
                 clearAll()
                 showToast("Please enter a valid URL")
+            }
+            is CancellationException -> {
+                clearAll()
+                showToast("Re-fetching images...")
             }
             else -> {
                 clearAll()

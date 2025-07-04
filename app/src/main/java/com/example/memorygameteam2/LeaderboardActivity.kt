@@ -86,13 +86,14 @@ class LeaderboardActivity : AppCompatActivity() {
 
             playAgainButton.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
-                finish()
+                val intent = Intent(this@LeaderboardActivity, FetchActivity::class.java)
+                startActivity(intent)
             }
 
             backButton.setOnClickListener {
                 SoundManager.playButtonClick(this@LeaderboardActivity)
                 val intent = Intent(this@LeaderboardActivity, MainActivity::class.java)
-                startActivity(intent);
+                startActivity(intent)
             }
 
             todayBtn.setOnClickListener {

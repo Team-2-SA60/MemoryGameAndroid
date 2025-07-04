@@ -272,7 +272,6 @@ class PlayActivity : AppCompatActivity() {
                 putExtra(CURRENT_GAME_ID, gameId)
             }
         startActivity(intent)
-        finish()
     }
 
     // fetch ad every 30s
@@ -300,7 +299,6 @@ class PlayActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        adJob?.cancel()
         adJob?.cancel()
     }
 }
