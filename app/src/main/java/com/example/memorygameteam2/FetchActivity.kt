@@ -39,7 +39,6 @@ import kotlin.collections.MutableList
 import kotlin.coroutines.cancellation.CancellationException
 
 class FetchActivity : AppCompatActivity() {
-
     private var fetchJob: Job? = null
     private var fetchImages: MutableList<FetchCard> = MutableList(20) { FetchCard() }
     private var selectedImages: MutableList<Int> = mutableListOf()
@@ -79,15 +78,15 @@ class FetchActivity : AppCompatActivity() {
 
     private fun initRv() {
         rv.layoutManager = GridLayoutManager(this@FetchActivity, 4)
-        rv.adapter = FetchCardAdapter(fetchImages) { pos ->
-            onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
-        }
+        rv.adapter =
+            FetchCardAdapter(fetchImages) { pos ->
+                onFetchCardClicked(pos, rv.adapter as FetchCardAdapter)
+            }
     }
 
     // set onClickListener events
 
     private fun initButtons() {
-
         // when 'Fetch' is clicked, fetch images from URL and display in view
         fetchButton.setOnClickListener {
             val fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
@@ -98,13 +97,14 @@ class FetchActivity : AppCompatActivity() {
 
             // launch fetchJob coroutine attached to FetchActivity lifecycle
             // we call our suspend functions within the coroutine (suspend -> pause while operations running)
-            fetchJob = lifecycleScope.launch {
-                try {
-                    fetchImages(fetchLink)
-                } catch (e: Exception) {
-                    handleFetchError(e)
+            fetchJob =
+                lifecycleScope.launch {
+                    try {
+                        fetchImages(fetchLink)
+                    } catch (e: Exception) {
+                        handleFetchError(e)
+                    }
                 }
-            }
         }
 
         // when 'Play' is clicked, pass selected images and start PlayActivity
@@ -122,10 +122,9 @@ class FetchActivity : AppCompatActivity() {
         1. getHtmlContent: Get all HTML content from specified URL
         2. extractImageUrls: Get only image src URL within the HTML content
         3. downloadToFile: Downloads images into our Android application
-    */
+     */
 
     private suspend fun fetchImages(fetchLink: String) {
-
         // run fetch operation (on IO thread)
         withContext(Dispatchers.IO) {
             val html = getHtmlContent(fetchLink)
@@ -229,7 +228,10 @@ class FetchActivity : AppCompatActivity() {
     // 3. Downloads images into our Android application
 
     @Throws(IOException::class)
-    private suspend fun downloadToFile(imageUrl: String, file: File): Boolean {
+    private suspend fun downloadToFile(
+        imageUrl: String,
+        file: File,
+    ): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 URL(imageUrl).openStream().use { input ->
@@ -249,9 +251,12 @@ class FetchActivity : AppCompatActivity() {
         1. Updates card selected status
         2. Updates number of cards selected and UI effect
         3. Once 6 images selected, 'Play' button appears
-    */
+     */
 
-    private fun onFetchCardClicked(pos: Int, adapter: FetchCardAdapter) {
+    private fun onFetchCardClicked(
+        pos: Int,
+        adapter: FetchCardAdapter,
+    ) {
         if (!done) return // if not yet finished fetching, disallow click
 
         val selectedImage = fetchImages[pos]
@@ -264,13 +269,14 @@ class FetchActivity : AppCompatActivity() {
                 adapter.notifyItemChanged(pos)
 
                 playButton.visibility = View.VISIBLE
-                playButton.text = if (selectedImages.size == 6) {
-                    playButton.isEnabled = true
-                    "Play!"
-                } else {
-                    playButton.isEnabled = false
-                    "${selectedImages.size} / 6 images selected"
-                }
+                playButton.text =
+                    if (selectedImages.size == 6) {
+                        playButton.isEnabled = true
+                        "Play!"
+                    } else {
+                        playButton.isEnabled = false
+                        "${selectedImages.size} / 6 images selected"
+                    }
             }
         } else {
             selectedImage.isSelected = false

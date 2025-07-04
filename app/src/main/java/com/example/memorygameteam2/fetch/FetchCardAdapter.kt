@@ -1,5 +1,6 @@
 package com.example.memorygameteam2.fetch
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,9 +21,21 @@ class FetchCardAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int,
-    ) = ViewHolder(
-        LayoutInflater.from(parent.context).inflate(R.layout.item_fetch, parent, false),
-    )
+    ): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_fetch, parent, false)
+
+        // Get current layout parameters for item_fetch (specifically CardView)
+        val params = view.layoutParams
+
+        // Set the height of each item_fetch to ~19% of parent (recycler view)
+        params.height = (parent.height * 0.19).toInt()
+
+        // Set parameter with updated height back to each item_fetch
+        view.layoutParams = params
+
+        // Now 4 rows of item_fetch will fit dynamically on different sized phones
+        return ViewHolder(view)
+    }
 
     override fun onBindViewHolder(
         holder: ViewHolder,
@@ -44,6 +57,7 @@ class FetchCardAdapter(
                 scaleY = 1.05f
                 cardElevation = 16f
                 radius = 12f
+                setBackgroundColor(Color.LTGRAY)
             }
         } else {
             // if card is not selected or deselected, show normal state
@@ -53,6 +67,7 @@ class FetchCardAdapter(
                 scaleY = 1f
                 cardElevation = 4f
                 radius = 8f
+                setBackgroundColor(Color.TRANSPARENT)
             }
         }
 
