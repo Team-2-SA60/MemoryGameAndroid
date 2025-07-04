@@ -37,38 +37,6 @@ class LoginScreen : AppCompatActivity() {
             }
         }
 
-        // Set up eye icon toggle for password visibility
-        binding.password.setOnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                if (event.rawX >= (binding.password.right - binding.password.compoundDrawables[2].bounds.width())) {
-                    togglePasswordVisibility()
-                    return@setOnTouchListener true
-                }
-            }
-            false
-        }
-    }
-
-    private fun togglePasswordVisibility() {
-        val currentInputType = binding.password.inputType
-        if (currentInputType == InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_CLASS_TEXT) {
-            binding.password.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            binding.password.setCompoundDrawablesWithIntrinsicBounds(
-                0,
-                0,
-                R.drawable.ic_baseline_eye_off_24,
-                0,
-            )
-        } else {
-            binding.password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD or InputType.TYPE_CLASS_TEXT
-            binding.password.setCompoundDrawablesWithIntrinsicBounds(
-                0,
-                0,
-                R.drawable.ic_baseline_eye_24,
-                0,
-            )
-        }
-        binding.password.setSelection(binding.password.text.length)
     }
 
     private fun validateInput(
