@@ -1,5 +1,7 @@
 # Memory Game Team 2 SA4108 🎴
-A card matching game built in Kotlin (Android Studio) and .NET (Backend). This repository is the Android Studio frontend. Backend can be accessed at: https://github.com/Team-2-SA60/MemoryGameBackEnd.git
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+\
+A card matching game built in Kotlin (Android Studio) and .NET (Backend). This repository is the Android Studio frontend. Backend can be accessed [here](https://github.com/Team-2-SA60/MemoryGameBackEnd.git).
 
 Users log in, fetch 20 images from a webpage, and select 6 to play a classic memory match game.  Free-to-play users see rotating ads every 30 seconds. Completion times are uploaded to the server to populate a leaderboard.
 
@@ -22,7 +24,17 @@ Users log in, fetch 20 images from a webpage, and select 6 to play a classic mem
 3. Sync Gradle & Configure SDK (minSdk = 27; targetSdk = 35)
 4. Start an Android emulator
 5. Click Run ▶️ in Android Studio’s toolbar
-
+6. Login and test using demo accounts
+   - Free User (With advertisements)
+   ```
+   Username: freeuser
+   Password: free
+   ```
+   - Paid User (No advertisements)
+   ```
+   Username: paiduser
+   Password: paid
+   ```
 ## Team 2️⃣
 
 - [@Adrian](https://github.com/adriantlh)
