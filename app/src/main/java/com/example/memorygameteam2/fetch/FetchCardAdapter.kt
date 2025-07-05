@@ -56,7 +56,7 @@ class FetchCardAdapter(
                 scaleX = 1.05f
                 scaleY = 1.05f
                 cardElevation = 16f
-                radius = 12f
+                radius = 60f
                 setBackgroundColor(Color.LTGRAY)
             }
         } else {

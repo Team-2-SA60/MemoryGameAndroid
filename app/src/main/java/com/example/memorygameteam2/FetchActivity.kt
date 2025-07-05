@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -22,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.fetch.FetchCard
 import com.example.memorygameteam2.fetch.FetchCardAdapter
+import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,6 +37,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.collections.MutableList
 import kotlin.coroutines.cancellation.CancellationException
+import com.example.memorygameteam2.soundeffect.SoundManager
 
 class FetchActivity : AppCompatActivity() {
     private var fetchJob: Job? = null
@@ -48,10 +49,10 @@ class FetchActivity : AppCompatActivity() {
 
     private lateinit var dir: File
     private lateinit var rv: RecyclerView
-    private lateinit var fetchButton: Button
+    private lateinit var fetchButton: MaterialButton
     private lateinit var progressBar: ProgressBar
     private lateinit var progressText: TextView
-    private lateinit var playButton: Button
+    private lateinit var playButton: MaterialButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,10 +66,10 @@ class FetchActivity : AppCompatActivity() {
 
         dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
         rv = findViewById<RecyclerView>(R.id.fetch_rv)
-        fetchButton = findViewById<Button>(R.id.fetch_button)
+        fetchButton = findViewById<MaterialButton>(R.id.fetch_button)
         progressBar = findViewById<ProgressBar>(R.id.progress_bar)
         progressText = findViewById<TextView>(R.id.progress_text)
-        playButton = findViewById<Button>(R.id.play_button)
+        playButton = findViewById<MaterialButton>(R.id.play_button)
 
         initRv()
         initButtons()
@@ -89,6 +90,7 @@ class FetchActivity : AppCompatActivity() {
     private fun initButtons() {
         // when 'Fetch' is clicked, fetch images from URL and display in view
         fetchButton.setOnClickListener {
+            SoundManager.playButtonClick(this@FetchActivity)
             val fetchLink = findViewById<EditText>(R.id.fetch_link).text.toString()
 
             // cancel previous coroutine if it is already running
@@ -109,6 +111,7 @@ class FetchActivity : AppCompatActivity() {
 
         // when 'Play' is clicked, pass selected images and start PlayActivity
         playButton.setOnClickListener {
+            SoundManager.playButtonClick(this@FetchActivity)
             val imagePosArray = selectedImages.toCollection(ArrayList())
             Intent(this@FetchActivity, PlayActivity::class.java).also {
                 it.putIntegerArrayListExtra("imageList", imagePosArray)
@@ -161,7 +164,7 @@ class FetchActivity : AppCompatActivity() {
             // update progress once all items are loaded (on UI thread)
             withContext(Dispatchers.Main) {
                 progressBar.progress = 100
-                progressText.text = "Select 6 images plz!"
+                progressText.text = "Select 6 images please! :-)"
             }
 
             done = true
@@ -260,25 +263,26 @@ class FetchActivity : AppCompatActivity() {
         if (!done) return // if not yet finished fetching, disallow click
 
         val selectedImage = fetchImages[pos]
-        val playButton = findViewById<Button>(R.id.play_button)
 
         if (!selectedImage.isSelected) {
             if (selectedImages.size < 6) {
+                SoundManager.playButtonClick(this@FetchActivity)
                 selectedImage.isSelected = true
                 selectedImages.add(pos)
                 adapter.notifyItemChanged(pos)
 
                 playButton.visibility = View.VISIBLE
-                playButton.text =
-                    if (selectedImages.size == 6) {
-                        playButton.isEnabled = true
-                        "Play!"
-                    } else {
-                        playButton.isEnabled = false
-                        "${selectedImages.size} / 6 images selected"
-                    }
+
+                if (selectedImages.size == 6) {
+                    playButton.isEnabled = true
+                    playButton.text = "Play!"
+                } else {
+                    playButton.isEnabled = false
+                    playButton.text = "${selectedImages.size} / 6 images selected"
+                }
             }
         } else {
+            SoundManager.playButtonClick(this@FetchActivity)
             selectedImage.isSelected = false
             selectedImages.remove(pos)
             adapter.notifyItemChanged(pos)
@@ -295,7 +299,7 @@ class FetchActivity : AppCompatActivity() {
         selectedImages = mutableListOf() // remove all selected images information
         rv.adapter?.notifyDataSetChanged() // update RecyclerView on removal
         progressBar.progress = 0 // set progress back to 0
-        progressText.text = "Enter a URL to fetch images" // set progress text back to 0
+        progressText.text = "" // set progress text back to none
         playButton.visibility = View.INVISIBLE // remove visibility of play button
         playButton.text = "" // remove text for play button
         playButton.isEnabled = false // disable play button
