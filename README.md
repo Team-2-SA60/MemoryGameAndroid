@@ -1,5 +1,8 @@
-![image](assets/logo.png)
-# Memory Game Team 2 SA4108 🎴
+<p align="center">
+  <img src="assets/logo.png" height="160px" width="160px"/>
+</p>
+
+# Memory Game Team 2 SA4108 🎴 
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
 A card matching game built in Kotlin (Android Studio) and .NET (Backend). This repository is the Android Studio frontend. Backend can be accessed [here](https://github.com/Team-2-SA60/MemoryGameBackEnd.git).
@@ -19,7 +22,7 @@ Users log in, fetch 20 images from a webpage, and select 6 to play a classic mem
 
 | Login                      | Menu                      | Fetch                      | Play                      | Leaderboard                      |
 |----------------------------|---------------------------|----------------------------|---------------------------|----------------------------------|
-| ![image](assets/login.jpg) | ![image](assets/menu.jpg) | ![image](assets/fetch.jpg) | ![image](assets/play.jpg) | ![image](assets/leaderboard.jpg) |
+| <img src="assets/login.jpg" width="150"/> | <img src="assets/menu.jpg" width="150"/> | <img src="assets/fetch.jpg" width="150"/> | <img src="assets/play.jpg" width="150"/> | <img src="assets/leaderboard.jpg" width="150"/> |
 
 ## Setup & Run
 
