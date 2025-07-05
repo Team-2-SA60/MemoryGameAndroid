@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.memorygameteam2.fetch.FetchCard
 import com.example.memorygameteam2.fetch.FetchCardAdapter
+import com.example.memorygameteam2.soundeffect.SoundManager
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -37,7 +38,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.collections.MutableList
 import kotlin.coroutines.cancellation.CancellationException
-import com.example.memorygameteam2.soundeffect.SoundManager
 
 class FetchActivity : AppCompatActivity() {
     private var fetchJob: Job? = null
