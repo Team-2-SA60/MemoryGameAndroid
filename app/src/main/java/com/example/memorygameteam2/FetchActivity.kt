@@ -224,7 +224,7 @@ class FetchActivity : AppCompatActivity() {
         return imgElements
             .map { it.attr("src") }
             .filter { src ->
-                src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg"))
+                src.startsWith("http") && (src.contains(".jpg") || src.contains(".jpeg") || src.contains(".png"))
             }
     }
 
